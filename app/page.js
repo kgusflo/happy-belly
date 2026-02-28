@@ -8,11 +8,14 @@ export default function Home() {
   const [loadingMealPlan, setLoadingMealPlan] = useState(false);
   const [loadingGroceryList, setLoadingGroceryList] = useState(false);
   const [weeklyContext, setWeeklyContext] = useState('');
+  const [groceryItems, setGroceryItems] = useState([]);
+  const [newItem, setNewItem] = useState('');
 
   const generateMealPlan = async () => {
     setLoadingMealPlan(true);
     setMealPlan('');
     setGroceryList('');
+    setGroceryItems([]);
     try {
       const res = await fetch('/api/generate', {
         method: 'POST',
@@ -37,6 +40,17 @@ export default function Home() {
       });
       const data = await res.json();
       setGroceryList(data.result);
+      const lines = data.result.split('\n');
+      const items = [];
+      let currentCategory = '';
+      lines.forEach((line, i) => {
+        if (line.startsWith('**') && line.endsWith('**')) {
+          currentCategory = line.replace(/\*\*/g, '');
+        } else if (line.startsWith('- ')) {
+          items.push({ id: i, text: line.slice(2), checked: false, category: currentCategory });
+        }
+      });
+      setGroceryItems(items);
     } catch (error) {
       setGroceryList('Something went wrong. Please try again.');
     }
@@ -58,17 +72,24 @@ export default function Home() {
     });
   };
 
+  const grouped = groceryItems.reduce((groups, item) => {
+    const cat = item.category || 'Other';
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(item);
+    return groups;
+  }, {});
+
   return (
     <main className="min-h-screen" style={{ backgroundColor: '#d9d0bc' }}>
 
       {/* Header */}
       <div className="p-6 text-center relative" style={{ backgroundColor: '#5aa0b4' }}>
-  <h1 className="text-2xl text-white tracking-wide" style={{ fontWeight: '500' }}>🥗 Happy Belly</h1>
-  <p className="text-sm mt-1" style={{ color: '#d9d0bc', fontWeight: '300' }}>Family meal planning made easy</p>
-  <div className="flex justify-center gap-4 mt-3">
-    <a href="/profiles" className="text-white text-xs px-3 py-1 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.2)', fontWeight: '400', color: 'black' }}>👨‍👩‍👦 Profiles</a>
-  </div>
-</div>
+        <h1 className="text-2xl text-white tracking-wide" style={{ fontWeight: '500' }}>🥗 Happy Belly</h1>
+        <p className="text-sm mt-1" style={{ color: '#d9d0bc', fontWeight: '300' }}>Family meal planning made easy</p>
+        <div className="flex justify-center gap-4 mt-3">
+          <a href="/profiles" className="text-xs px-3 py-1 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.2)', fontWeight: '400', color: 'black' }}>👨‍👩‍👦 Profiles</a>
+        </div>
+      </div>
 
       <div className="max-w-2xl mx-auto p-4">
 
@@ -100,7 +121,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Generate Meal Plan Button */}
+        {/* Weekly Context */}
         <div className="bg-white rounded-2xl p-5 mt-4 shadow-sm">
           <h2 className="text-gray-800 mb-2 tracking-wide" style={{ fontWeight: '500' }}>This Week's Context</h2>
           <textarea
@@ -113,6 +134,7 @@ export default function Home() {
           />
         </div>
 
+        {/* Generate Meal Plan Button */}
         <button
           onClick={generateMealPlan}
           disabled={loadingMealPlan}
@@ -143,10 +165,75 @@ export default function Home() {
         )}
 
         {/* Grocery List Display */}
-        {groceryList && (
+        {groceryItems.length > 0 && (
           <div className="bg-white rounded-2xl p-5 mt-4 shadow-sm mb-8">
             <h2 className="text-gray-800 mb-3 tracking-wide" style={{ fontWeight: '500' }}>Grocery List</h2>
-            <div className="text-sm leading-relaxed">{formatText(groceryList)}</div>
+
+            {/* Add Item */}
+            <div className="flex gap-2 mb-4">
+              <input
+                className="flex-1 border border-gray-200 rounded-xl p-2 text-sm"
+                placeholder="Add an item..."
+                value={newItem}
+                onChange={e => setNewItem(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && newItem.trim()) {
+                    setGroceryItems([...groceryItems, { id: Date.now(), text: newItem.trim(), checked: false, category: 'Other' }]);
+                    setNewItem('');
+                  }
+                }}
+                style={{ fontWeight: '300' }}
+              />
+              <button
+                onClick={() => {
+                  if (newItem.trim()) {
+                    setGroceryItems([...groceryItems, { id: Date.now(), text: newItem.trim(), checked: false, category: 'Other' }]);
+                    setNewItem('');
+                  }
+                }}
+                className="text-white rounded-xl px-3 text-sm"
+                style={{ backgroundColor: '#d5824a', color: 'white', fontWeight: '400' }}
+              >
+                Add
+              </button>
+            </div>
+
+            {/* Grouped Items */}
+            <div className="space-y-4">
+              {Object.entries(grouped).map(([category, items]) => (
+                <div key={category}>
+                  <p className="text-xs tracking-wide mb-2" style={{ color: '#5aa0b4', fontWeight: '600' }}>{category}</p>
+                  <div className="space-y-2">
+                    {items.map(item => (
+                      <div key={item.id} className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={item.checked}
+                          onChange={() => setGroceryItems(groceryItems.map(i =>
+                            i.id === item.id ? { ...i, checked: !i.checked } : i
+                          ))}
+                          className="w-4 h-4 rounded"
+                          style={{ accentColor: '#5aa0b4' }}
+                        />
+                        <span
+                          className="flex-1 text-sm"
+                          style={{ fontWeight: '300', textDecoration: item.checked ? 'line-through' : 'none', color: item.checked ? '#9ca3af' : '#374151' }}
+                        >
+                          {item.text}
+                        </span>
+                        <button
+                          onClick={() => setGroceryItems(groceryItems.filter(i => i.id !== item.id))}
+                          className="text-gray-300 text-lg"
+                          style={{ lineHeight: 1, backgroundColor: '#d9d0bc', borderRadius: '6px', padding: '2px 6px', border: 'none' }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

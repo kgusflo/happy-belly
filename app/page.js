@@ -101,7 +101,7 @@ export default function Home() {
           onClick={generateMealPlan}
           disabled={loadingMealPlan}
           className="w-full text-white rounded-2xl p-4 mt-4 text-base shadow-sm disabled:opacity-60 tracking-wide"
-          style={{ backgroundColor: '#d5824a', fontWeight: '400' }}
+          style={{ backgroundColor: '#d5824a', fontWeight: '400', color: 'white' }}
         >
           {loadingMealPlan ? '⏳ Generating your meal plan...' : '🗓️ Generate This Week\'s Meal Plan'}
         </button>
@@ -120,7 +120,7 @@ export default function Home() {
             onClick={generateGroceryList}
             disabled={loadingGroceryList}
             className="w-full text-white rounded-2xl p-4 mt-4 text-base shadow-sm disabled:opacity-60 tracking-wide"
-            style={{ backgroundColor: '#99b8b8', fontWeight: '400' }}
+            style={{ backgroundColor: '#99b8b8', fontWeight: '400', color: 'white' }}
           >
             {loadingGroceryList ? '⏳ Building your grocery list...' : '🛒 Generate Grocery List'}
           </button>

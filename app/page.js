@@ -7,6 +7,7 @@ export default function Home() {
   const [groceryList, setGroceryList] = useState('');
   const [loadingMealPlan, setLoadingMealPlan] = useState(false);
   const [loadingGroceryList, setLoadingGroceryList] = useState(false);
+  const [weeklyContext, setWeeklyContext] = useState('');
 
   const generateMealPlan = async () => {
     setLoadingMealPlan(true);
@@ -16,7 +17,7 @@ export default function Home() {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'meal-plan' }),
+        body: JSON.stringify({ type: 'meal-plan', weeklyContext }),
       });
       const data = await res.json();
       setMealPlan(data.result);
@@ -100,6 +101,18 @@ export default function Home() {
         </div>
 
         {/* Generate Meal Plan Button */}
+        <div className="bg-white rounded-2xl p-5 mt-4 shadow-sm">
+          <h2 className="text-gray-800 mb-2 tracking-wide" style={{ fontWeight: '500' }}>This Week's Context</h2>
+          <textarea
+            className="w-full border border-gray-200 rounded-xl p-3 text-sm"
+            placeholder="Tell me about your week... cravings, schedule, training plans, anything that should shape your meal plan!"
+            rows={4}
+            value={weeklyContext}
+            onChange={e => setWeeklyContext(e.target.value)}
+            style={{ fontWeight: '300' }}
+          />
+        </div>
+
         <button
           onClick={generateMealPlan}
           disabled={loadingMealPlan}

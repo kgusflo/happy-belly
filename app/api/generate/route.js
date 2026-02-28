@@ -32,7 +32,7 @@ COOKING PHILOSOPHY:
 
 export async function POST(request) {
   try {
-    const { type, mealPlan } = await request.json();
+    const { type, mealPlan, weeklyContext } = await request.json();
 
     let prompt;
 
@@ -48,7 +48,9 @@ Format each day like this:
 - Snacks: [snack ideas]
 - Baby's portions: [how to prepare for baby]
 
-Keep meals simple and practical. Prioritize iron-rich foods, protein, and foods that work for the whole family.`;
+Keep meals simple and practical. Prioritize iron-rich foods, protein, and foods that work for the whole family.
+
+${weeklyContext ? `This week's context from the user: ${weeklyContext}` : ''}`;
 
     } else if (type === 'grocery-list') {
       prompt = `Based on this weekly meal plan:\n\n${mealPlan}\n\nCreate a grocery list organized by store section.

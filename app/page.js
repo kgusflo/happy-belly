@@ -61,10 +61,13 @@ export default function Home() {
     <main className="min-h-screen" style={{ backgroundColor: '#d9d0bc' }}>
 
       {/* Header */}
-      <div className="p-6 text-center" style={{ backgroundColor: '#5aa0b4' }}>
-        <h1 className="text-2xl text-white tracking-wide" style={{ fontWeight: '500' }}>🥗 Happy Belly</h1>
-        <p className="text-sm mt-1" style={{ color: '#d9d0bc', fontWeight: '300' }}>Family meal planning made easy</p>
-      </div>
+      <div className="p-6 text-center relative" style={{ backgroundColor: '#5aa0b4' }}>
+  <h1 className="text-2xl text-white tracking-wide" style={{ fontWeight: '500' }}>🥗 Happy Belly</h1>
+  <p className="text-sm mt-1" style={{ color: '#d9d0bc', fontWeight: '300' }}>Family meal planning made easy</p>
+  <div className="flex justify-center gap-4 mt-3">
+    <a href="/profiles" className="text-white text-xs px-3 py-1 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.2)', fontWeight: '400', color: 'black' }}>👨‍👩‍👦 Profiles</a>
+  </div>
+</div>
 
       <div className="max-w-2xl mx-auto p-4">
 

@@ -46,6 +46,7 @@ export default function Home() {
 
 
       localStorage.setItem('groceryItems', JSON.stringify(items));
+      await supabase.from('meal_plans').update({ grocery_items: items }).eq('id', 1);
     } catch (error) {
       console.error('Grocery list error:', error);
     }

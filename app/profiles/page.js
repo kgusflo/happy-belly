@@ -68,7 +68,7 @@ export default function Profiles() {
 
   if (loading) return (
     <main className="min-h-screen" style={{ backgroundColor: '#d9d0bc' }}>
-      <div className="p-6 text-center" style={{ backgroundColor: '#5aa0b4' }}>
+      <div className="p-6 text-center" style={{ backgroundColor: '#5aa0b4', position: 'relative' }}>
         <h1 className="text-2xl text-white tracking-wide" style={{ fontWeight: '500' }}>Family Profiles</h1>
       </div>
       <div className="p-8 text-center text-gray-500">Loading...</div>
@@ -78,7 +78,7 @@ export default function Profiles() {
   return (
     <main className="min-h-screen" style={{ backgroundColor: '#d9d0bc' }}>
       <div className="p-6 text-center" style={{ backgroundColor: '#5aa0b4' }}>
-        <Link href="/" className="text-white text-sm absolute left-4 top-7" style={{ fontWeight: '300' }}>← Back</Link>
+        <a href="/" style={{ fontWeight: '300', color: 'black', position: 'absolute', left: '16px', top: '30px', fontSize: '14px' }}>← Back</a>
         <h1 className="text-2xl text-white tracking-wide" style={{ fontWeight: '500' }}>Family Profiles</h1>
       </div>
 

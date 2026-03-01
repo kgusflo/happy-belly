@@ -88,6 +88,7 @@ export default function Home() {
         <p className="text-sm mt-1" style={{ color: '#d9d0bc', fontWeight: '300' }}>Family meal planning made easy</p>
         <div className="flex justify-center gap-4 mt-3">
           <a href="/profiles" className="text-xs px-3 py-1 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.2)', fontWeight: '400', color: 'black' }}>👨‍👩‍👦 Profiles</a>
+          <a href="/recipes" className="text-xs px-3 py-1 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.2)', fontWeight: '400', color: 'black' }}>📖 Recipes</a>
         </div>
       </div>
 

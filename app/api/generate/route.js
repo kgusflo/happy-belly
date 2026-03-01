@@ -68,27 +68,17 @@ Keep meals simple and practical. Prioritize iron-rich foods, protein, and foods 
 
 ${weeklyContext ? `This week's context from the user: ${weeklyContext}` : ''}`;
 
-    } else if (type === 'grocery-list') {
-      prompt = `Based on this weekly meal plan:\n\n${mealPlan}\n\nCreate a grocery list organized by store section.
+} else if (type === 'grocery-list') {
+      prompt = `Based on this weekly meal plan:\n\n${mealPlan}\n\nCreate a grocery list organized by store section. Return ONLY a valid JSON array, no other text. Format:
+[
+  { "category": "Produce", "items": ["apples (3)", "spinach (1 bag)"] },
+  { "category": "Protein", "items": ["chicken breast (2 lbs)"] },
+  { "category": "Dairy", "items": ["Greek yogurt (32 oz)"] },
+  { "category": "Pantry & Dry Goods", "items": ["olive oil", "brown rice (2 cups)"] },
+  { "category": "Frozen", "items": ["edamame (1 bag)"] }
+]
+Include quantities. This is for 2 adults and a 6-month-old baby.`;
 
-Format it like:
-**Produce**
-- item
-
-**Protein**
-- item
-
-**Dairy**
-- item
-
-**Pantry & Dry Goods**
-- item
-
-**Frozen**
-- item
-
-Include approximate quantities. This is for 2 adults and a 6-month-old baby.`;
-    }
 
     const message = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',

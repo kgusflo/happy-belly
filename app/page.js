@@ -27,18 +27,14 @@ export default function Home() {
         body: JSON.stringify({ type: 'grocery-list', mealPlan: plan }),
       });
       const data = await res.json();
-      const lines = data.result.split('\n');
       const items = [];
-      let currentCategory = 'Other';
-      lines.forEach((line, i) => {
-        const trimmed = line.trim();
-        const categoryMatch = trimmed.match(/^\*\*(.+?)\*\*/);
-        if (categoryMatch) {
-          currentCategory = categoryMatch[1].replace(/:$/, '').trim();
-        } else if (trimmed.startsWith('- ')) {
-          items.push({ id: Date.now() + i, text: trimmed.slice(2), checked: false, category: currentCategory });
-        }
+      const parsed = JSON.parse(data.result);
+      parsed.forEach(group => {
+        group.items.forEach((text, i) => {
+          items.push({ id: Date.now() + i + Math.random(), text, checked: false, category: group.category });
+        });
       });
+
 
       localStorage.setItem('groceryItems', JSON.stringify(items));
     } catch (error) {

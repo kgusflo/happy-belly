@@ -29,9 +29,9 @@ export default function BottomNav() {
         <BookOpen size={20} color="#9AAC9D" />
         <span style={{ fontSize: '10px', color: '#9AAC9D', fontWeight: '500' }}>Recipes</span>
       </a>
-      <a href="/settings" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none', gap: '2px' }}>
+      <a href="/profiles" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none', gap: '2px' }}>
         <Settings size={20} color="#9AAC9D" />
-        <span style={{ fontSize: '10px', color: '#9AAC9D', fontWeight: '500' }}>Settings</span>
+        <span style={{ fontSize: '10px', color: '#9AAC9D', fontWeight: '500' }}>Profiles</span>
       </a>
     </nav>
   );

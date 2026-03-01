@@ -28,7 +28,9 @@ export default function Home() {
       });
       const data = await res.json();
       const items = [];
-      const parsed = JSON.parse(data.result);
+      const cleaned = data.result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const parsed = JSON.parse(cleaned);
+
       parsed.forEach(group => {
         group.items.forEach((text, i) => {
           items.push({ id: Date.now() + i + Math.random(), text, checked: false, category: group.category });

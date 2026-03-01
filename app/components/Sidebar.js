@@ -6,7 +6,7 @@ import Settings from 'lucide-react/dist/esm/icons/settings';
 const navItems = [
   { href: '/', icon: Home, label: 'Meals' },
   { href: '/recipes', icon: BookOpen, label: 'Recipes' },
-  { href: '/settings', icon: Settings, label: 'Settings' },
+  { href: '/profiles', icon: Settings, label: 'Profiles' },
 ];
 
 export default function Sidebar() {

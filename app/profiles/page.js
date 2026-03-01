@@ -2,23 +2,27 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import Link from 'next/link';
 
 export default function Profiles() {
   const [members, setMembers] = useState([]);
   const [editing, setEditing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+useEffect(() => {
+  const check = () => setIsDesktop(window.innerWidth >= 1024);
+  check();
+  window.addEventListener('resize', check);
+  return () => window.removeEventListener('resize', check);
+}, []);
 
   useEffect(() => {
     fetchMembers();
   }, []);
 
   const fetchMembers = async () => {
-    const { data, error } = await supabase
-      .from('family_members')
-      .select('*')
-      .order('created_at');
+    const { data } = await supabase.from('family_members').select('*').order('created_at');
     if (data) setMembers(data);
     setLoading(false);
   };
@@ -45,12 +49,8 @@ export default function Profiles() {
     setSaving(false);
   };
 
-
   const deleteProfile = async (id) => {
-    await supabase
-      .from('family_members')
-      .delete()
-      .eq('id', id);
+    await supabase.from('family_members').delete().eq('id', id);
     await fetchMembers();
   };
 
@@ -66,92 +66,102 @@ export default function Profiles() {
 
   const emptyMember = { name: '', role: 'adult', date_of_birth: '', height: '', weight: '', activity_level: '', goals: '', supplements: '', notes: '' };
 
+  const inputStyle = {
+    border: '1.5px solid #BDC2B4',
+    borderRadius: '12px',
+    padding: '10px 14px',
+    fontSize: '13px',
+    fontFamily: 'Montserrat, sans-serif',
+    fontWeight: '300',
+    outline: 'none',
+    width: '100%',
+    boxSizing: 'border-box',
+  };
+
   if (loading) return (
-    <main className="min-h-screen" style={{ backgroundColor: '#d9d0bc' }}>
-      <div className="p-6 text-center" style={{ backgroundColor: '#5aa0b4', position: 'relative' }}>
-        <h1 className="text-2xl text-white tracking-wide" style={{ fontWeight: '500' }}>Family Profiles</h1>
+    <main style={{ backgroundColor: '#F9D7B5', minHeight: '100vh' }}>
+      <div style={{ backgroundColor: '#5AA0B4', padding: '16px 20px', borderBottomLeftRadius: '20px', borderBottomRightRadius: '20px' }}>
+        <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'white' }}>Profiles</h1>
       </div>
-      <div className="p-8 text-center text-gray-500">Loading...</div>
+      <div style={{ padding: '40px', textAlign: 'center', color: '#9AAC9D' }}>Loading...</div>
     </main>
   );
 
   return (
-    <main className="min-h-screen" style={{ backgroundColor: '#d9d0bc' }}>
-      <div className="p-6 text-center" style={{ backgroundColor: '#5aa0b4' }}>
-        <a href="/" style={{ fontWeight: '300', color: 'black', position: 'absolute', left: '16px', top: '30px', fontSize: '14px' }}>← Back</a>
-        <h1 className="text-2xl text-white tracking-wide" style={{ fontWeight: '500' }}>Family Profiles</h1>
+    <main style={{ backgroundColor: '#F9D7B5', minHeight: '100vh' }}>
+
+      {/* Header */}
+      <div style={{ backgroundColor: '#5AA0B4', padding: '16px 20px', borderBottomLeftRadius: '20px', borderBottomRightRadius: '20px' }}>
+        <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'white' }}>Profiles</h1>
+        <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#F9D7B5', fontWeight: '300' }}>Manage your family profiles</p>
       </div>
 
-      <div className="max-w-2xl mx-auto p-4">
+      <div style={{ maxWidth: '680px', margin: '0 auto', padding: '20px 16px 100px 16px' }}>
 
-        {/* Family Members */}
+        <p style={{ fontSize: '11px', fontWeight: '600', color: '#9AAC9D', letterSpacing: '0.5px', marginBottom: '12px' }}>FAMILY PROFILES</p>
+
         {members.map(member => {
           const babyStage = member.role === 'baby' ? getBabyStage(member.date_of_birth) : null;
           return (
-            <div key={member.id} className="bg-white rounded-2xl p-5 mt-4 shadow-sm">
-              <div className="flex justify-between items-start">
+            <div key={member.id} style={{ backgroundColor: 'white', borderRadius: '20px', padding: '16px', marginBottom: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
-                  <h2 className="text-gray-800 text-lg" style={{ fontWeight: '500' }}>
+                  <p style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: '500', color: '#404F43' }}>
                     {member.role === 'baby' ? '👶' : member.role === 'mom' ? '👩' : '👨'} {member.name}
-                  </h2>
+                  </p>
                   {babyStage && (
-                    <div className="mt-1 text-xs">
-                      <p style={{ fontWeight: '500' }}>{babyStage.stage}</p>
-                      <p style={{ fontWeight: '300' }}>{babyStage.prep}</p>
+                    <div style={{ marginTop: '4px' }}>
+                      <p style={{ margin: 0, fontSize: '12px', color: '#D5824A', fontWeight: '500' }}>{babyStage.stage}</p>
+                      <p style={{ margin: 0, fontSize: '12px', color: '#9AAC9D', fontWeight: '300' }}>{babyStage.prep}</p>
                     </div>
                   )}
                 </div>
-                <button
-                  onClick={() => setEditing(member)}
-                  className="text-sm px-3 py-1 rounded-lg text-white"
-                  style={{ backgroundColor: '#99b8b8', fontWeight: '400' }}
-                >
+                <button onClick={() => setEditing(member)}
+                  style={{ backgroundColor: '#F9D7B5', border: '1.5px solid #BDC2B4', borderRadius: '12px', padding: '6px 14px', fontSize: '12px', fontFamily: 'Montserrat, sans-serif', fontWeight: '400', cursor: 'pointer', color: '#404F43' }}>
                   Edit
                 </button>
               </div>
-              <div className="mt-3 space-y-1 text-sm text-gray-500" style={{ fontWeight: '300' }}>
-                {member.height && <p>Height: {member.height}</p>}
-                {member.weight && <p>Weight: {member.weight}</p>}
-                {member.activity_level && <p>Activity: {member.activity_level}</p>}
-                {member.goals && <p>Goals: {member.goals}</p>}
-                {member.supplements && <p>Supplements: {member.supplements}</p>}
-                {member.notes && <p>Notes: {member.notes}</p>}
+              <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                {member.height && <p style={{ margin: 0, fontSize: '13px', color: '#9AAC9D', fontWeight: '300' }}>Height: {member.height}</p>}
+                {member.weight && <p style={{ margin: 0, fontSize: '13px', color: '#9AAC9D', fontWeight: '300' }}>Weight: {member.weight}</p>}
+                {member.activity_level && <p style={{ margin: 0, fontSize: '13px', color: '#9AAC9D', fontWeight: '300' }}>Activity: {member.activity_level}</p>}
+                {member.goals && <p style={{ margin: 0, fontSize: '13px', color: '#9AAC9D', fontWeight: '300' }}>Goals: {member.goals}</p>}
+                {member.supplements && <p style={{ margin: 0, fontSize: '13px', color: '#9AAC9D', fontWeight: '300' }}>Supplements: {member.supplements}</p>}
               </div>
             </div>
           );
         })}
 
-        {/* Add New Member Button */}
-        <button
-          onClick={() => setEditing(emptyMember)}
-          className="w-full text-white rounded-2xl p-4 mt-4 text-base shadow-sm tracking-wide"
-          style={{ backgroundColor: '#d5824a', fontWeight: '400', color: 'white' }}
-        >
-          + Add Family Member
-        </button>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+          <button onClick={() => setEditing(emptyMember)}
+            style={{ backgroundColor: '#D5824A', color: 'white', border: 'none', borderRadius: '50px', padding: '12px 32px', fontSize: '14px', fontFamily: 'Montserrat, sans-serif', fontWeight: '500', cursor: 'pointer' }}>
+            + Add Family Member
+          </button>
+        </div>
 
-        {/* Edit / Add Modal */}
+        {/* Edit Modal */}
         {editing && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 z-50">
-            <div style={{ position: 'fixed', top: '10vh', left: 0, right: 0, bottom: 0, backgroundColor: 'white', borderTopLeftRadius: '24px', padding: '24px', overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }}>
-
-              <h2 className="text-lg text-gray-800 mb-4" style={{ fontWeight: '500' }}>
+          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 50 }}>
+            <div style={{
+  position: 'fixed',
+  top: '10vh',
+  left: isDesktop ? '60px' : 0,
+  right: isDesktop ? '300px' : 0,
+  bottom: 0,
+  backgroundColor: 'white',
+  borderTopLeftRadius: '24px',
+  borderTopRightRadius: '24px',
+  padding: '24px',
+  overflowY: 'scroll'
+}}>
+              <h2 style={{ margin: '0 0 20px 0', fontSize: '16px', fontWeight: '500', color: '#404F43' }}>
                 {editing.id ? 'Edit Profile' : 'Add Family Member'}
               </h2>
-              <div className="space-y-3">
-                <input
-                  className="w-full border border-gray-200 rounded-xl p-3 text-sm"
-                  placeholder="Name"
-                  value={editing.name}
-                  onChange={e => setEditing({ ...editing, name: e.target.value })}
-                  style={{ fontWeight: '300' }}
-                />
-                <select
-                  className="w-full border border-gray-200 rounded-xl p-3 text-sm"
-                  value={editing.role}
-                  onChange={e => setEditing({ ...editing, role: e.target.value })}
-                  style={{ fontWeight: '300' }}
-                >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <input style={inputStyle} placeholder="Name" value={editing.name}
+                  onChange={e => setEditing({ ...editing, name: e.target.value })} />
+                <select style={inputStyle} value={editing.role}
+                  onChange={e => setEditing({ ...editing, role: e.target.value })}>
                   <option value="mom">Mom</option>
                   <option value="dad">Dad</option>
                   <option value="baby">Baby</option>
@@ -159,83 +169,37 @@ export default function Profiles() {
                 </select>
                 {editing.role === 'baby' && (
                   <div>
-                    <label className="text-xs text-gray-400 ml-1" style={{ fontWeight: '300' }}>Date of Birth</label>
-                    <input
-                      type="date"
-                      className="w-full border border-gray-200 rounded-xl p-3 text-sm mt-1"
-                      value={editing.date_of_birth || ''}
-                      onChange={e => setEditing({ ...editing, date_of_birth: e.target.value })}
-                      style={{ fontWeight: '300' }}
-                    />
+                    <label style={{ fontSize: '12px', color: '#9AAC9D', fontWeight: '300', marginBottom: '4px', display: 'block' }}>Date of Birth</label>
+                    <input type="date" style={inputStyle} value={editing.date_of_birth || ''}
+                      onChange={e => setEditing({ ...editing, date_of_birth: e.target.value })} />
                   </div>
                 )}
-                <input
-                  className="w-full border border-gray-200 rounded-xl p-3 text-sm"
-                  placeholder="Height (e.g. 5ft 9in)"
-                  value={editing.height || ''}
-                  onChange={e => setEditing({ ...editing, height: e.target.value })}
-                  style={{ fontWeight: '300' }}
-                />
-                <input
-                  className="w-full border border-gray-200 rounded-xl p-3 text-sm"
-                  placeholder="Weight (e.g. 175 lbs)"
-                  value={editing.weight || ''}
-                  onChange={e => setEditing({ ...editing, weight: e.target.value })}
-                  style={{ fontWeight: '300' }}
-                />
-                <input
-                  className="w-full border border-gray-200 rounded-xl p-3 text-sm"
-                  placeholder="Activity level"
-                  value={editing.activity_level || ''}
-                  onChange={e => setEditing({ ...editing, activity_level: e.target.value })}
-                  style={{ fontWeight: '300' }}
-                />
-                <input
-                  className="w-full border border-gray-200 rounded-xl p-3 text-sm"
-                  placeholder="Goals"
-                  value={editing.goals || ''}
-                  onChange={e => setEditing({ ...editing, goals: e.target.value })}
-                  style={{ fontWeight: '300' }}
-                />
-                <input
-                  className="w-full border border-gray-200 rounded-xl p-3 text-sm"
-                  placeholder="Supplements"
-                  value={editing.supplements || ''}
-                  onChange={e => setEditing({ ...editing, supplements: e.target.value })}
-                  style={{ fontWeight: '300' }}
-                />
-                <textarea
-                  className="w-full border border-gray-200 rounded-xl p-3 text-sm"
-                  placeholder="Notes"
-                  rows={3}
-                  value={editing.notes || ''}
-                  onChange={e => setEditing({ ...editing, notes: e.target.value })}
-                  style={{ fontWeight: '300' }}
-                />
+                <input style={inputStyle} placeholder="Height (e.g. 5ft 9in)" value={editing.height || ''}
+                  onChange={e => setEditing({ ...editing, height: e.target.value })} />
+                <input style={inputStyle} placeholder="Weight (e.g. 175 lbs)" value={editing.weight || ''}
+                  onChange={e => setEditing({ ...editing, weight: e.target.value })} />
+                <input style={inputStyle} placeholder="Activity level" value={editing.activity_level || ''}
+                  onChange={e => setEditing({ ...editing, activity_level: e.target.value })} />
+                <input style={inputStyle} placeholder="Goals" value={editing.goals || ''}
+                  onChange={e => setEditing({ ...editing, goals: e.target.value })} />
+                <input style={inputStyle} placeholder="Supplements" value={editing.supplements || ''}
+                  onChange={e => setEditing({ ...editing, supplements: e.target.value })} />
+                <textarea style={{ ...inputStyle, resize: 'none' }} placeholder="Notes" rows={3}
+                  value={editing.notes || ''} onChange={e => setEditing({ ...editing, notes: e.target.value })} />
               </div>
-              <div className="flex gap-3 mt-4">
-                <button
-                  onClick={() => setEditing(null)}
-                  className="flex-1 border border-gray-200 text-gray-500 rounded-xl p-3 text-sm"
-                  style={{ fontWeight: '400' }}
-                >
+              <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                <button onClick={() => setEditing(null)}
+                  style={{ flex: 1, border: '1.5px solid #BDC2B4', borderRadius: '16px', padding: '12px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', fontWeight: '400', cursor: 'pointer', background: 'white', color: '#9AAC9D' }}>
                   Cancel
                 </button>
                 {editing.id && (
-                  <button
-                    onClick={() => { deleteProfile(editing.id); setEditing(null); }}
-                    className="flex-1 text-white rounded-xl p-3 text-sm"
-                    style={{ backgroundColor: '#e3a578', fontWeight: '400', color: 'white' }}
-                  >
+                  <button onClick={() => { deleteProfile(editing.id); setEditing(null); }}
+                    style={{ flex: 1, backgroundColor: '#F9D7B5', border: '1.5px solid #BDC2B4', borderRadius: '16px', padding: '12px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', fontWeight: '400', cursor: 'pointer', color: '#D5824A' }}>
                     Delete
                   </button>
                 )}
-                <button
-                  onClick={() => saveProfile(editing)}
-                  disabled={saving}
-                  className="flex-1 text-white rounded-xl p-3 text-sm"
-                  style={{ backgroundColor: '#d5824a', fontWeight: '400', color: 'white' }}
-                >
+                <button onClick={() => saveProfile(editing)} disabled={saving}
+                  style={{ flex: 1, backgroundColor: '#D5824A', color: 'white', border: 'none', borderRadius: '16px', padding: '12px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', fontWeight: '500', cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>
                   {saving ? 'Saving...' : 'Save'}
                 </button>
               </div>

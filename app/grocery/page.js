@@ -24,19 +24,20 @@ export default function Grocery() {
   }, {});
 
   return (
-    <main className="min-h-screen" style={{ backgroundColor: '#F9D7B5' }}>
+    <main style={{ backgroundColor: '#F9D7B5', minHeight: '100vh' }}>
 
       {/* Header */}
-      <div className="p-6 text-center" style={{ backgroundColor: '#5AA0B4' }}>
-        <h1 className="text-2xl text-white tracking-wide" style={{ fontWeight: '500' }}>🛒 Grocery List</h1>
+      <div style={{ backgroundColor: '#5AA0B4', padding: '16px 20px', borderBottomLeftRadius: '20px', borderBottomRightRadius: '20px' }}>
+        <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'white' }}>Grocery List</h1>
+        <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#F9D7B5', fontWeight: '300' }}>Auto-generated from your meal plan</p>
       </div>
 
-      <div className="max-w-2xl mx-auto p-4" style={{ paddingBottom: '100px' }}>
+      <div style={{ maxWidth: '680px', margin: '0 auto', padding: '20px 16px 100px 16px' }}>
 
         {/* Add Item */}
-        <div className="flex gap-2 mt-4">
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
           <input
-            className="flex-1 border border-gray-200 rounded-xl p-3 text-sm"
+            style={{ flex: 1, border: '1.5px solid #BDC2B4', borderRadius: '16px', padding: '10px 16px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', fontWeight: '300', outline: 'none', backgroundColor: '#F9D7B5' }}
             placeholder="Add an item..."
             value={newItem}
             onChange={e => setNewItem(e.target.value)}
@@ -46,7 +47,6 @@ export default function Grocery() {
                 setNewItem('');
               }
             }}
-            style={{ fontWeight: '300', backgroundColor: 'white' }}
           />
           <button
             onClick={() => {
@@ -55,56 +55,54 @@ export default function Grocery() {
                 setNewItem('');
               }
             }}
-            className="text-white rounded-xl px-4 text-sm"
-            style={{ backgroundColor: '#D5824A', color: 'white', fontWeight: '400' }}
+            style={{ backgroundColor: '#D5824A', color: 'white', border: 'none', borderRadius: '16px', padding: '10px 20px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', fontWeight: '400', cursor: 'pointer' }}
           >
             Add
           </button>
         </div>
 
-        {/* Clear All */}
         {groceryItems.length > 0 && (
-          <button
-            onClick={() => saveItems([])}
-            className="w-full rounded-xl p-2 mt-2 text-xs"
-            style={{ color: '#9AAC9D', fontWeight: '400', background: 'none', border: 'none' }}
-          >
-            Clear all
-          </button>
-        )}
-
-        {/* Grouped Items */}
-        {groceryItems.length === 0 && (
-          <div className="bg-white rounded-2xl p-8 mt-4 text-center shadow-sm">
-            <p style={{ color: '#9AAC9D', fontWeight: '300', fontSize: '14px' }}>No items yet. Generate a meal plan to get started!</p>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+            <button onClick={() => saveItems([])}
+              style={{ background: 'none', border: 'none', fontSize: '12px', color: '#BDC2B4', cursor: 'pointer', fontFamily: 'Montserrat, sans-serif', fontWeight: '400' }}>
+              Clear all
+            </button>
           </div>
         )}
 
-        <div className="space-y-4 mt-4">
+        {groceryItems.length === 0 && (
+          <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '40px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginTop: '8px' }}>
+            <p style={{ color: '#9AAC9D', fontWeight: '300', fontSize: '14px', margin: 0 }}>No items yet. Generate a meal plan to get started!</p>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {Object.entries(grouped).map(([category, items]) => (
-            <div key={category} className="bg-white rounded-2xl p-4 shadow-sm">
-              <p className="text-xs tracking-wide mb-3" style={{ color: '#5AA0B4', fontWeight: '600' }}>{category}</p>
-              <div className="space-y-2">
+            <div key={category} style={{ backgroundColor: 'white', borderRadius: '20px', padding: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+              <p style={{ fontSize: '11px', fontWeight: '600', color: '#5AA0B4', letterSpacing: '0.5px', margin: '0 0 12px 0' }}>{category.toUpperCase()}</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {items.map(item => (
-                  <div key={item.id} className="flex items-center gap-3">
+                  <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <input
                       type="checkbox"
                       checked={item.checked}
                       onChange={() => saveItems(groceryItems.map(i =>
                         i.id === item.id ? { ...i, checked: !i.checked } : i
                       ))}
-                      style={{ accentColor: '#5AA0B4' }}
+                      style={{ accentColor: '#5AA0B4', width: '16px', height: '16px' }}
                     />
-                    <span className="flex-1 text-sm" style={{
+                    <span style={{
+                      flex: 1,
+                      fontSize: '14px',
                       fontWeight: '300',
+                      color: item.checked ? '#BDC2B4' : '#404F43',
                       textDecoration: item.checked ? 'line-through' : 'none',
-                      color: item.checked ? '#9ca3af' : '#374151'
                     }}>
                       {item.text}
                     </span>
                     <button
                       onClick={() => saveItems(groceryItems.filter(i => i.id !== item.id))}
-                      style={{ color: '#9ca3af', background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', padding: '0 4px' }}
+                      style={{ background: 'none', border: 'none', color: '#BDC2B4', fontSize: '18px', cursor: 'pointer', padding: '0 4px', lineHeight: 1 }}
                     >
                       ×
                     </button>

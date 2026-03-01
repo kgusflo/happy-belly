@@ -8,26 +8,16 @@ export default function Recipes() {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState('list');
   const [selected, setSelected] = useState(null);
-  const [adding, setAdding] = useState(false);
   const [filterProtein, setFilterProtein] = useState('All');
   const [form, setForm] = useState({
-    name: '',
-    protein_source: '',
-    ingredients: '',
-    instructions: '',
-    notes: '',
-    prep_time: '',
-    batch_friendly: false,
-    baby_adaptable: false,
-    one_pan: false,
-    favorite: false,
-    nutritional_profile: '',
-    url: '',
-    image_url: '',
+    name: '', protein_source: '', ingredients: '', instructions: '',
+    notes: '', prep_time: '', batch_friendly: false, baby_adaptable: false,
+    one_pan: false, favorite: false, nutritional_profile: '', url: '', image_url: '',
   });
   const [urlInput, setUrlInput] = useState('');
   const [fetchingUrl, setFetchingUrl] = useState(false);
   const [analyzingNutrition, setAnalyzingNutrition] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetchRecipes();
@@ -41,16 +31,14 @@ export default function Recipes() {
       const id = params.get('id');
       if (id) {
         const recipe = data.find(r => r.id === id);
-        if (recipe) {
-          setSelected(recipe);
-          setView('detail');
-        }
+        if (recipe) { setSelected(recipe); setView('detail'); }
       }
     }
     setLoading(false);
   };
 
   const saveRecipe = async () => {
+    setSaving(true);
     const cleaned = {
       ...form,
       protein_source: form.protein_source || null,
@@ -62,16 +50,15 @@ export default function Recipes() {
       url: form.url || null,
       image_url: form.image_url || null,
     };
-    const { data, error } = await supabase.from('recipes').insert(cleaned).select();
-    if (data) {
-      await fetchRecipes();
-      setView('list');
-      setForm({
-        name: '', protein_source: '', ingredients: '', instructions: '',
-        notes: '', prep_time: '', batch_friendly: false, baby_adaptable: false,
-        one_pan: false, favorite: false, nutritional_profile: '', url: '', image_url: '',
-      });
-    }
+    await supabase.from('recipes').insert(cleaned);
+    await fetchRecipes();
+    setView('list');
+    setForm({
+      name: '', protein_source: '', ingredients: '', instructions: '',
+      notes: '', prep_time: '', batch_friendly: false, baby_adaptable: false,
+      one_pan: false, favorite: false, nutritional_profile: '', url: '', image_url: '',
+    });
+    setSaving(false);
   };
 
   const updateRecipe = async (recipe) => {
@@ -90,6 +77,7 @@ export default function Recipes() {
   const incrementUseCount = async (recipe) => {
     const updated = { ...recipe, use_count: (recipe.use_count || 0) + 1 };
     await supabase.from('recipes').update({ use_count: updated.use_count }).eq('id', recipe.id);
+    setSelected(updated);
     await fetchRecipes();
   };
 
@@ -103,9 +91,7 @@ export default function Recipes() {
         body: JSON.stringify({ url: urlInput }),
       });
       const data = await res.json();
-      if (data.recipe) {
-        setForm({ ...form, ...data.recipe, url: urlInput });
-      }
+      if (data.recipe) setForm({ ...form, ...data.recipe, url: urlInput });
     } catch (e) {
       alert('Could not fetch recipe from that URL. Try adding it manually.');
     }
@@ -124,7 +110,7 @@ export default function Recipes() {
       const data = await res.json();
       setForm({ ...form, nutritional_profile: data.nutrition });
     } catch (e) {
-      alert('Could not analyze nutrition. Try again.');
+      alert('Could not analyze nutrition.');
     }
     setAnalyzingNutrition(false);
   };
@@ -135,279 +121,305 @@ export default function Recipes() {
   const rest = filtered.filter(r => !r.favorite);
 
   const TagBadge = ({ label, active, plain }) => (
-    <span className="text-xs px-2 py-0.5 rounded-full" style={{
-      backgroundColor: plain ? 'transparent' : active ? '#f1caa6' : '#f3f4f6',
-      color: plain ? '#000000' : active ? '#d5824a' : '#9ca3af',
-      fontWeight: '400'
+    <span style={{
+      fontSize: '11px',
+      padding: '3px 10px',
+      borderRadius: '20px',
+      backgroundColor: plain ? 'transparent' : active ? '#F9D7B5' : '#f3f4f6',
+      color: plain ? '#404F43' : active ? '#D5824A' : '#9ca3af',
+      fontWeight: '400',
     }}>{label}</span>
   );
 
-  if (loading) return (
-    <main className="min-h-screen" style={{ backgroundColor: '#d9d0bc' }}>
-      <div className="p-6 text-center" style={{ backgroundColor: '#5aa0b4' }}>
-        <h1 className="text-2xl text-white tracking-wide" style={{ fontWeight: '500' }}>Recipe Library</h1>
+  const RecipeCard = ({ recipe }) => (
+    <div onClick={() => { setSelected(recipe); setView('detail'); }}
+      style={{
+        backgroundColor: 'white',
+        borderRadius: '20px',
+        padding: '16px',
+        marginBottom: '10px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+        cursor: 'pointer',
+      }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ flex: 1 }}>
+          <p style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: '500', color: '#404F43' }}>{recipe.name}</p>
+          {recipe.protein_source && <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#9AAC9D', fontWeight: '300' }}>{recipe.protein_source}</p>}
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            {recipe.batch_friendly && <TagBadge label="Batch friendly" active />}
+            {recipe.baby_adaptable && <TagBadge label="Baby adaptable" active />}
+            {recipe.one_pan && <TagBadge label="One pan" active />}
+            {recipe.prep_time && <TagBadge label={recipe.prep_time} plain />}
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+          <span style={{ fontSize: '16px' }}>{recipe.favorite ? '⭐' : ''}</span>
+          <p style={{ margin: 0, fontSize: '11px', color: '#BDC2B4', fontWeight: '300' }}>{recipe.use_count || 0}x</p>
+        </div>
       </div>
-      <div className="p-8 text-center text-gray-500">Loading...</div>
+    </div>
+  );
+
+  if (loading) return (
+    <main style={{ backgroundColor: '#F9D7B5', minHeight: '100vh' }}>
+      <div style={{ backgroundColor: '#5AA0B4', padding: '16px 20px', borderBottomLeftRadius: '20px', borderBottomRightRadius: '20px' }}>
+        <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'white' }}>Recipe Library</h1>
+      </div>
+      <div style={{ padding: '40px', textAlign: 'center', color: '#9AAC9D' }}>Loading...</div>
     </main>
   );
 
   return (
-    <main className="min-h-screen" style={{ backgroundColor: '#d9d0bc' }}>
+    <main style={{ backgroundColor: '#F9D7B5', minHeight: '100vh' }}>
 
       {/* Header */}
-      <div className="p-6 text-center" style={{ backgroundColor: '#5aa0b4', position: 'relative' }}>
+      <div style={{ backgroundColor: '#5AA0B4', padding: '16px 20px', borderBottomLeftRadius: '20px', borderBottomRightRadius: '20px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {view !== 'list' && (
-          <button onClick={() => { setView('list'); setSelected(null); setAdding(false); }}
-            style={{ fontWeight: '300', color: 'black', position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', fontSize: '14px', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>← Back</button>
-
+          <button onClick={() => { setView('list'); setSelected(null); }}
+            style={{ position: 'absolute', left: '16px', background: 'none', border: 'none', cursor: 'pointer', color: 'black', fontSize: '14px', fontFamily: 'Montserrat, sans-serif', fontWeight: '300', top: '50%', transform: 'translateY(-50%)' }}>
+            ← Back
+          </button>
         )}
-        {view === 'list' && (
-          <a href="/" style={{ fontWeight: '300', color: 'black', position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' , fontSize: '14px' }}>← Home</a>
-        )}
-        <h1 className="text-2xl text-white tracking-wide" style={{ fontWeight: '500' }}>
-          {view === 'list' ? '📖 Recipe Library' : view === 'add' ? 'Add Recipe' : selected?.name}
+        <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'white' }}>
+          {view === 'list' ? 'Recipe Library' : view === 'add' ? 'Add Recipe' : selected?.name}
         </h1>
       </div>
 
-      <div className="max-w-2xl mx-auto p-4" style={{ paddingBottom: '100px' }}>
+      <div style={{ maxWidth: '680px', margin: '0 auto', padding: '20px 16px 100px 16px' }}>
 
         {/* LIST VIEW */}
         {view === 'list' && (
           <>
             {/* Protein Filter */}
-            <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
+            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '16px' }}>
               {proteinSources.map(p => (
                 <button key={p} onClick={() => setFilterProtein(p)}
-                  className="text-xs px-3 py-1 rounded-full whitespace-nowrap"
                   style={{
-                    backgroundColor: filterProtein === p ? '#5aa0b4' : 'white',
+                    padding: '6px 14px',
+                    borderRadius: '20px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    fontSize: '12px',
+                    fontFamily: 'Montserrat, sans-serif',
+                    backgroundColor: filterProtein === p ? '#5AA0B4' : 'white',
                     color: filterProtein === p ? 'white' : '#6b7280',
-                    fontWeight: '400'
+                    fontWeight: '400',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
                   }}>
                   {p}
                 </button>
               ))}
             </div>
 
-            {/* Favorites */}
             {favorites.length > 0 && (
-              <div className="mt-4">
-                <p className="text-xs tracking-wide mb-2" style={{ color: '#5aa0b4', fontWeight: '600' }}>⭐ FAVORITES</p>
-                {favorites.map(recipe => (
-                  <div key={recipe.id} onClick={() => { setSelected(recipe); setView('detail'); }}
-                    className="bg-white rounded-2xl p-4 mb-2 shadow-sm cursor-pointer">
-                    <div className="flex justify-between items-start">
-                      <p className="text-gray-800" style={{ fontWeight: '500' }}>{recipe.name}</p>
-                      <p className="text-xs text-gray-400" style={{ fontWeight: '300' }}>Used {recipe.use_count || 0}x</p>
-                    </div>
-                    <p className="text-xs text-gray-400 mt-1" style={{ fontWeight: '300' }}>{recipe.protein_source}</p>
-                    <div className="flex gap-1 mt-2 flex-wrap">
-                      {recipe.batch_friendly && <TagBadge label="Batch friendly" active />}
-                      {recipe.baby_adaptable && <TagBadge label="Baby adaptable" active />}
-                      {recipe.one_pan && <TagBadge label="One pan" active />}
-                      {recipe.prep_time && <TagBadge label={recipe.prep_time} plain />}
-                    </div>
-                  </div>
-                ))}
+              <div style={{ marginBottom: '16px' }}>
+                <p style={{ fontSize: '11px', fontWeight: '600', color: '#9AAC9D', letterSpacing: '0.5px', marginBottom: '8px' }}>⭐ FAVORITES</p>
+                {favorites.map(r => <RecipeCard key={r.id} recipe={r} />)}
               </div>
             )}
 
-            {/* All Recipes */}
             {rest.length > 0 && (
-              <div className="mt-4">
-                <p className="text-xs tracking-wide mb-2" style={{ color: '#5aa0b4', fontWeight: '600' }}>ALL RECIPES</p>
-                {rest.map(recipe => (
-                  <div key={recipe.id} onClick={() => { setSelected(recipe); setView('detail'); }}
-                    className="bg-white rounded-2xl p-4 mb-2 shadow-sm cursor-pointer">
-                    <div className="flex justify-between items-start">
-                      <p className="text-gray-800" style={{ fontWeight: '500' }}>{recipe.name}</p>
-                      <p className="text-xs text-gray-400" style={{ fontWeight: '300' }}>Used {recipe.use_count || 0}x</p>
-                    </div>
-                    <p className="text-xs text-gray-400 mt-1" style={{ fontWeight: '300' }}>{recipe.protein_source}</p>
-                    <div className="flex gap-1 mt-2 flex-wrap">
-                      {recipe.batch_friendly && <TagBadge label="Batch friendly" active />}
-                      {recipe.baby_adaptable && <TagBadge label="Baby adaptable" active />}
-                      {recipe.one_pan && <TagBadge label="One pan" active />}
-                      {recipe.prep_time && <TagBadge label={recipe.prep_time} plain />}
-                    </div>
-                  </div>
-                ))}
+              <div>
+                <p style={{ fontSize: '11px', fontWeight: '600', color: '#9AAC9D', letterSpacing: '0.5px', marginBottom: '8px' }}>ALL RECIPES</p>
+                {rest.map(r => <RecipeCard key={r.id} recipe={r} />)}
               </div>
             )}
 
             {recipes.length === 0 && (
-              <div className="bg-white rounded-2xl p-8 mt-4 text-center shadow-sm">
-                <p className="text-gray-400" style={{ fontWeight: '300' }}>No recipes yet. Add your first one!</p>
+              <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '40px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                <p style={{ color: '#9AAC9D', fontWeight: '300', fontSize: '14px', margin: 0 }}>No recipes yet. Add your first one!</p>
               </div>
             )}
 
-            {/* Add Button */}
-            <button onClick={() => setView('add')}
-              className="w-full text-white rounded-2xl p-4 mt-4 text-base shadow-sm tracking-wide"
-              style={{ backgroundColor: '#d5824a', fontWeight: '400', color: 'white' }}>
-              + Add Recipe
-            </button>
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+              <button onClick={() => setView('add')}
+                style={{
+                  backgroundColor: '#D5824A',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '50px',
+                  padding: '12px 32px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  fontFamily: 'Montserrat, sans-serif',
+                  cursor: 'pointer',
+                }}>
+                + Add Recipe
+              </button>
+            </div>
           </>
         )}
 
         {/* DETAIL VIEW */}
         {view === 'detail' && selected && (
-          <div className="bg-white rounded-2xl p-5 mt-4 shadow-sm mb-8">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex gap-2 flex-wrap">
+          <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                 {selected.batch_friendly && <TagBadge label="Batch friendly" active />}
                 {selected.baby_adaptable && <TagBadge label="Baby adaptable" active />}
                 {selected.one_pan && <TagBadge label="One pan" active />}
                 {selected.prep_time && <TagBadge label={selected.prep_time} plain />}
               </div>
               <button onClick={() => updateRecipe({ ...selected, favorite: !selected.favorite })}
-                className="text-xl">{selected.favorite ? '⭐' : '☆'}</button>
+                style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>
+                {selected.favorite ? '⭐' : '☆'}
+              </button>
             </div>
 
             {selected.protein_source && (
-              <p className="text-xs mb-3" style={{ color: '#5aa0b4', fontWeight: '500' }}>Protein: {selected.protein_source}</p>
+              <p style={{ fontSize: '12px', color: '#5AA0B4', fontWeight: '500', marginBottom: '16px' }}>Protein: {selected.protein_source}</p>
             )}
 
             {selected.ingredients && (
-              <>
-                <p className="text-sm text-gray-800 mb-1" style={{ fontWeight: '500' }}>Ingredients</p>
-                <p className="text-sm text-gray-600 mb-4 whitespace-pre-wrap" style={{ fontWeight: '300' }}>{selected.ingredients}</p>
-              </>
+              <div style={{ marginBottom: '16px' }}>
+                <p style={{ fontSize: '12px', fontWeight: '600', color: '#9AAC9D', letterSpacing: '0.5px', marginBottom: '6px' }}>INGREDIENTS</p>
+                <p style={{ fontSize: '14px', fontWeight: '300', color: '#404F43', lineHeight: '1.6', whiteSpace: 'pre-wrap', margin: 0 }}>{selected.ingredients}</p>
+              </div>
             )}
 
             {selected.instructions && (
-              <>
-                <p className="text-sm text-gray-800 mb-1" style={{ fontWeight: '500' }}>Instructions</p>
-                <p className="text-sm text-gray-600 mb-4 whitespace-pre-wrap" style={{ fontWeight: '300' }}>{selected.instructions}</p>
-              </>
+              <div style={{ marginBottom: '16px' }}>
+                <p style={{ fontSize: '12px', fontWeight: '600', color: '#9AAC9D', letterSpacing: '0.5px', marginBottom: '6px' }}>INSTRUCTIONS</p>
+                <p style={{ fontSize: '14px', fontWeight: '300', color: '#404F43', lineHeight: '1.6', whiteSpace: 'pre-wrap', margin: 0 }}>{selected.instructions}</p>
+              </div>
             )}
 
             {selected.nutritional_profile && (
-              <>
-                <p className="text-sm text-gray-800 mb-1" style={{ fontWeight: '500' }}>Nutrition</p>
-                <p className="text-sm text-gray-600 mb-4 whitespace-pre-wrap" style={{ fontWeight: '300' }}>{selected.nutritional_profile}</p>
-              </>
+              <div style={{ marginBottom: '16px', backgroundColor: '#F9D7B5', borderRadius: '16px', padding: '12px 16px' }}>
+                <p style={{ fontSize: '12px', fontWeight: '600', color: '#9AAC9D', letterSpacing: '0.5px', marginBottom: '6px' }}>NUTRITION</p>
+                <p style={{ fontSize: '13px', fontWeight: '300', color: '#404F43', lineHeight: '1.6', margin: 0 }}>{selected.nutritional_profile}</p>
+              </div>
             )}
 
             {selected.notes && (
-              <>
-                <p className="text-sm text-gray-800 mb-1" style={{ fontWeight: '500' }}>Notes</p>
-                <p className="text-sm text-gray-600 mb-4 whitespace-pre-wrap" style={{ fontWeight: '300' }}>{selected.notes}</p>
-              </>
+              <div style={{ marginBottom: '16px' }}>
+                <p style={{ fontSize: '12px', fontWeight: '600', color: '#9AAC9D', letterSpacing: '0.5px', marginBottom: '6px' }}>NOTES</p>
+                <p style={{ fontSize: '14px', fontWeight: '300', color: '#404F43', lineHeight: '1.6', whiteSpace: 'pre-wrap', margin: 0 }}>{selected.notes}</p>
+              </div>
             )}
 
             {selected.url && (
               <a href={selected.url} target="_blank" rel="noopener noreferrer"
-                className="text-sm" style={{ color: '#5aa0b4', fontWeight: '400' }}>
+                style={{ fontSize: '13px', color: '#5AA0B4', fontWeight: '400', display: 'block', marginBottom: '16px' }}>
                 🔗 View Original Recipe
               </a>
             )}
 
-            <button onClick={() => incrementUseCount(selected)}
-              className="w-full text-white rounded-2xl p-3 mt-4 text-sm"
-              style={{ backgroundColor: '#99b8b8', fontWeight: '400', color: 'white' }}>
-              ✓ I made this! ({selected.use_count || 0}x)
-            </button>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+              <button onClick={() => incrementUseCount(selected)}
+                style={{
+                  backgroundColor: '#9AAC9D',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '50px',
+                  padding: '10px 24px',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  fontFamily: 'Montserrat, sans-serif',
+                  cursor: 'pointer',
+                }}>
+                ✓ I made this! ({selected.use_count || 0}x)
+              </button>
+            </div>
 
-            <button onClick={() => deleteRecipe(selected.id)}
-              className="w-full rounded-2xl p-3 mt-2 text-sm"
-              style={{ backgroundColor: '#f3f4f6', color: '#9ca3af', fontWeight: '400' }}>
-              Delete Recipe
-            </button>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <button onClick={() => deleteRecipe(selected.id)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '13px',
+                  color: '#BDC2B4',
+                  cursor: 'pointer',
+                  fontFamily: 'Montserrat, sans-serif',
+                  fontWeight: '400',
+                }}>
+                Delete Recipe
+              </button>
+            </div>
           </div>
         )}
 
         {/* ADD VIEW */}
         {view === 'add' && (
-          <div className="bg-white rounded-2xl p-5 mt-4 shadow-sm mb-8">
+          <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
 
-            {/* URL Import */}
-            <p className="text-sm text-gray-800 mb-2" style={{ fontWeight: '500' }}>Import from URL</p>
-            <div className="flex gap-2 mb-4">
+            <p style={{ fontSize: '12px', fontWeight: '600', color: '#9AAC9D', letterSpacing: '0.5px', marginBottom: '8px' }}>IMPORT FROM URL</p>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
               <input
-                className="flex-1 border border-gray-200 rounded-xl p-3 text-sm"
+                style={{ flex: 1, border: '1.5px solid #BDC2B4', borderRadius: '12px', padding: '10px 14px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', fontWeight: '300', outline: 'none' }}
                 placeholder="Paste recipe URL..."
                 value={urlInput}
                 onChange={e => setUrlInput(e.target.value)}
-                style={{ fontWeight: '300' }}
               />
               <button onClick={fetchFromUrl} disabled={fetchingUrl}
-                className="text-white rounded-xl px-3 text-sm"
-                style={{ backgroundColor: '#5aa0b4', color: 'white', fontWeight: '400' }}>
+                style={{ backgroundColor: '#5AA0B4', color: 'white', border: 'none', borderRadius: '12px', padding: '10px 16px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', fontWeight: '400', cursor: 'pointer' }}>
                 {fetchingUrl ? '...' : 'Import'}
               </button>
             </div>
 
-            <div className="border-t border-gray-100 my-4" />
+            <div style={{ borderTop: '1px solid #f3f4f6', marginBottom: '20px' }} />
 
-            {/* Manual Entry */}
-            <div className="space-y-3">
-              <input className="w-full border border-gray-200 rounded-xl p-3 text-sm"
-                placeholder="Recipe name" value={form.name}
-                onChange={e => setForm({ ...form, name: e.target.value })}
-                style={{ fontWeight: '300' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {[
+                { key: 'name', placeholder: 'Recipe name', required: true },
+                { key: 'protein_source', placeholder: 'Protein source (e.g. Chicken, Salmon)' },
+                { key: 'prep_time', placeholder: 'Prep time (e.g. 30 mins)' },
+              ].map(field => (
+                <input key={field.key}
+                  style={{ border: '1.5px solid #BDC2B4', borderRadius: '12px', padding: '10px 14px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', fontWeight: '300', outline: 'none' }}
+                  placeholder={field.placeholder}
+                  value={form[field.key]}
+                  onChange={e => setForm({ ...form, [field.key]: e.target.value })}
+                />
+              ))}
 
-              <input className="w-full border border-gray-200 rounded-xl p-3 text-sm"
-                placeholder="Protein source (e.g. Chicken, Salmon, Lentils)"
-                value={form.protein_source}
-                onChange={e => setForm({ ...form, protein_source: e.target.value })}
-                style={{ fontWeight: '300' }} />
+              {[
+                { key: 'ingredients', placeholder: 'Ingredients', rows: 4 },
+                { key: 'instructions', placeholder: 'Instructions', rows: 4 },
+                { key: 'notes', placeholder: 'Notes', rows: 2 },
+              ].map(field => (
+                <textarea key={field.key}
+                  style={{ border: '1.5px solid #BDC2B4', borderRadius: '12px', padding: '10px 14px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', fontWeight: '300', outline: 'none', resize: 'none' }}
+                  placeholder={field.placeholder}
+                  rows={field.rows}
+                  value={form[field.key]}
+                  onChange={e => setForm({ ...form, [field.key]: e.target.value })}
+                />
+              ))}
 
-              <input className="w-full border border-gray-200 rounded-xl p-3 text-sm"
-                placeholder="Prep time (e.g. 30 mins)"
-                value={form.prep_time}
-                onChange={e => setForm({ ...form, prep_time: e.target.value })}
-                style={{ fontWeight: '300' }} />
-
-              <textarea className="w-full border border-gray-200 rounded-xl p-3 text-sm"
-                placeholder="Ingredients" rows={4} value={form.ingredients}
-                onChange={e => setForm({ ...form, ingredients: e.target.value })}
-                style={{ fontWeight: '300' }} />
-
-              <textarea className="w-full border border-gray-200 rounded-xl p-3 text-sm"
-                placeholder="Instructions" rows={4} value={form.instructions}
-                onChange={e => setForm({ ...form, instructions: e.target.value })}
-                style={{ fontWeight: '300' }} />
-
-              <textarea className="w-full border border-gray-200 rounded-xl p-3 text-sm"
-                placeholder="Notes" rows={2} value={form.notes}
-                onChange={e => setForm({ ...form, notes: e.target.value })}
-                style={{ fontWeight: '300' }} />
-
-              {/* Tags */}
-              <div className="flex flex-wrap gap-3">
+              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
                 {[
                   { key: 'batch_friendly', label: 'Batch friendly' },
                   { key: 'baby_adaptable', label: 'Baby adaptable' },
                   { key: 'one_pan', label: 'One pan' },
                 ].map(tag => (
-                  <label key={tag.key} className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                  <label key={tag.key} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#404F43', cursor: 'pointer', fontWeight: '300' }}>
                     <input type="checkbox" checked={form[tag.key]}
                       onChange={e => setForm({ ...form, [tag.key]: e.target.checked })}
-                      style={{ accentColor: '#5aa0b4' }} />
-                    <span style={{ fontWeight: '300' }}>{tag.label}</span>
+                      style={{ accentColor: '#5AA0B4' }} />
+                    {tag.label}
                   </label>
                 ))}
               </div>
 
-              {/* Analyze Nutrition */}
               <button onClick={analyzeNutrition} disabled={analyzingNutrition || !form.ingredients}
-                className="w-full rounded-2xl p-3 text-sm"
-                style={{ backgroundColor: '#f1caa6', color: '#d5824a', fontWeight: '400' }}>
+                style={{ backgroundColor: '#F9D7B5', border: '1.5px solid #BDC2B4', borderRadius: '12px', padding: '10px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', color: '#D5824A', fontWeight: '400', cursor: 'pointer' }}>
                 {analyzingNutrition ? '⏳ Analyzing...' : '🔍 Auto-analyze Nutrition'}
               </button>
 
               {form.nutritional_profile && (
-                <div className="rounded-xl p-3" style={{ backgroundColor: '#f9f9f7' }}>
-                  <p className="text-xs text-gray-500" style={{ fontWeight: '300' }}>{form.nutritional_profile}</p>
+                <div style={{ backgroundColor: '#F9D7B5', borderRadius: '12px', padding: '12px' }}>
+                  <p style={{ fontSize: '12px', color: '#404F43', fontWeight: '300', margin: 0 }}>{form.nutritional_profile}</p>
                 </div>
               )}
 
-              <button onClick={saveRecipe} disabled={!form.name}
-                className="w-full text-white rounded-2xl p-4 text-base"
-                style={{ backgroundColor: '#d5824a', fontWeight: '400', color: 'white' }}>
-                Save Recipe
-              </button>
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: '8px' }}>
+                <button onClick={saveRecipe} disabled={!form.name || saving}
+                  style={{ backgroundColor: '#D5824A', color: 'white', border: 'none', borderRadius: '50px', padding: '12px 40px', fontSize: '14px', fontFamily: 'Montserrat, sans-serif', fontWeight: '500', cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>
+                  {saving ? 'Saving...' : 'Save Recipe'}
+                </button>
+              </div>
             </div>
           </div>
         )}

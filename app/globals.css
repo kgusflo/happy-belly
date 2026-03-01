@@ -35,6 +35,7 @@ body {
     padding-bottom: 0;
   }
 }
+
 .nav-item {
   position: relative;
 }
@@ -62,4 +63,64 @@ body {
 
 .nav-item:hover {
   background-color: #F9D7B5;
+}
+
+/* Modal sheet — full width on mobile, respects sidebar/grocery panel on desktop */
+.modal-sheet {
+  position: fixed;
+  top: 10vh;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: white;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 24px;
+  overflow-y: scroll;
+}
+
+@media (min-width: 1024px) {
+  .modal-sheet {
+    left: 60px;
+    right: 300px;
+  }
+}
+/* Modal sheet — full width on mobile, respects sidebar/grocery panel on desktop */
+.modal-sheet {
+  position: fixed;
+  top: 10vh;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: white;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 24px;
+  overflow-y: scroll;
+}
+
+@media (min-width: 1024px) {
+  .modal-sheet {
+    left: 60px;
+    right: 300px;
+  }
+}
+.modal-sheet {
+  position: fixed;
+  top: 10vh;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: white;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 24px;
+  overflow-y: scroll;
+}
+
+@media (min-width: 1024px) {
+  .modal-sheet {
+    left: 60px;
+    right: 300px;
+  }
 }

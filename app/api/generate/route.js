@@ -1,6 +1,11 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { createClient } from '@supabase/supabase-js';
 
 const client = new Anthropic();
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
 const FAMILY_PROFILES = `
 Family Nutrition Profiles:
@@ -20,7 +25,6 @@ DAD:
 
 BABY (~6 months):
 - Just starting solids
-- Portions: ~2 tablespoons per serving
 - Priority: Iron-rich foods
 - Preparation: Pureed smooth or soft enough to squish between fingers
 
@@ -37,8 +41,20 @@ export async function POST(request) {
     let prompt;
 
     if (type === 'meal-plan') {
-      prompt = `${FAMILY_PROFILES}
-Create a 7-day meal plan for this family. For each day include breakfast, lunch, dinner, and 1-2 snacks.
+      const { data: recipes } = await supabase
+        .from('recipes')
+        .select('name, protein_source, prep_time, batch_friendly, baby_adaptable, one_pan, use_count')
+        .order('use_count', { ascending: false });
+
+      const recipeList = recipes && recipes.length > 0
+        ? `\nSAVED RECIPES IN HER LIBRARY:\n${recipes.map(r =>
+            `- ${r.name}${r.protein_source ? ` (${r.protein_source})` : ''}${r.prep_time ? ` | ${r.prep_time}` : ''}${r.batch_friendly ? ' | batch-friendly' : ''}${r.baby_adaptable ? ' | baby-adaptable' : ''}${r.one_pan ? ' | one-pan' : ''}`
+          ).join('\n')}`
+        : '';
+
+      prompt = `${FAMILY_PROFILES}${recipeList}
+
+Create a 7-day meal plan for this family. Prioritize using recipes from her saved library when possible. For each day include breakfast, lunch, dinner, and 1-2 snacks.
 
 Format each day like this:
 **Monday**

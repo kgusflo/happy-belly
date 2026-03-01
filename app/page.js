@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { supabase } from '../lib/supabase';
+import { useState, useEffect } from 'react';
+
 
 export default function Home() {
   const [mealPlan, setMealPlan] = useState('');
@@ -10,6 +12,15 @@ export default function Home() {
   const [weeklyContext, setWeeklyContext] = useState('');
   const [groceryItems, setGroceryItems] = useState([]);
   const [newItem, setNewItem] = useState('');
+  const [savedRecipes, setSavedRecipes] = useState([]);
+
+  useEffect(() => {
+    const fetchRecipes = async () => {
+      const { data } = await supabase.from('recipes').select('id, name');
+      if (data) setSavedRecipes(data);
+    };
+    fetchRecipes();
+  }, []);
 
   const generateMealPlan = async () => {
     setLoadingMealPlan(true);
@@ -63,7 +74,25 @@ export default function Home() {
         return <h3 key={i} style={{ color: '#5aa0b4', fontWeight: '500' }} className="text-lg mt-4 mb-1">{line.replace(/\*\*/g, '')}</h3>;
       }
       if (line.startsWith('- ')) {
-        return <p key={i} style={{ fontWeight: '300' }} className="ml-2 text-gray-700">• {line.slice(2)}</p>;
+        const content = line.slice(2);
+        let element = <span>{content}</span>;
+        for (const recipe of savedRecipes) {
+          if (content.toLowerCase().includes(recipe.name.toLowerCase())) {
+            const idx = content.toLowerCase().indexOf(recipe.name.toLowerCase());
+            const before = content.slice(0, idx);
+            const match = content.slice(idx, idx + recipe.name.length);
+            const after = content.slice(idx + recipe.name.length);
+            element = (
+              <span>
+                {before}
+                <a href={`/recipes?id=${recipe.id}`} style={{ color: '#d5824a', textDecoration: 'underline', fontWeight: '400' }}>{match}</a>
+                {after}
+              </span>
+            );
+            break;
+          }
+        }
+        return <p key={i} style={{ fontWeight: '300' }} className="ml-2 text-gray-700">• {element}</p>;
       }
       if (line.trim() === '') {
         return <br key={i} />;

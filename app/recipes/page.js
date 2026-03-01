@@ -35,7 +35,18 @@ export default function Recipes() {
 
   const fetchRecipes = async () => {
     const { data } = await supabase.from('recipes').select('*').order('use_count', { ascending: false });
-    if (data) setRecipes(data);
+    if (data) {
+      setRecipes(data);
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      if (id) {
+        const recipe = data.find(r => r.id === id);
+        if (recipe) {
+          setSelected(recipe);
+          setView('detail');
+        }
+      }
+    }
     setLoading(false);
   };
 
@@ -151,7 +162,7 @@ export default function Recipes() {
 
         )}
         {view === 'list' && (
-          <a href="/" className="text-sm absolute left-4 top-7" style={{ fontWeight: '300', color: 'black' }}>← Home</a>
+          <a href="/" style={{ fontWeight: '300', color: 'black', position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' , fontSize: '14px' }}>← Home</a>
         )}
         <h1 className="text-2xl text-white tracking-wide" style={{ fontWeight: '500' }}>
           {view === 'list' ? '📖 Recipe Library' : view === 'add' ? 'Add Recipe' : selected?.name}

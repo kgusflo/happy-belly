@@ -29,14 +29,17 @@ export default function Home() {
       const data = await res.json();
       const lines = data.result.split('\n');
       const items = [];
-      let currentCategory = '';
+      let currentCategory = 'Other';
       lines.forEach((line, i) => {
-        if (line.startsWith('**') && line.endsWith('**')) {
-          currentCategory = line.replace(/\*\*/g, '');
-        } else if (line.startsWith('- ')) {
-          items.push({ id: i, text: line.slice(2), checked: false, category: currentCategory });
+        const trimmed = line.trim();
+        const categoryMatch = trimmed.match(/^\*\*(.+?)\*\*/);
+        if (categoryMatch) {
+          currentCategory = categoryMatch[1].replace(/:$/, '').trim();
+        } else if (trimmed.startsWith('- ')) {
+          items.push({ id: Date.now() + i, text: trimmed.slice(2), checked: false, category: currentCategory });
         }
       });
+
       localStorage.setItem('groceryItems', JSON.stringify(items));
     } catch (error) {
       console.error('Grocery list error:', error);

@@ -1,18 +1,13 @@
 'use client';
-
 import { supabase } from '../lib/supabase';
 import { useState, useEffect } from 'react';
 
-
 export default function Home() {
   const [mealPlan, setMealPlan] = useState('');
-  const [groceryList, setGroceryList] = useState('');
   const [loadingMealPlan, setLoadingMealPlan] = useState(false);
-  const [loadingGroceryList, setLoadingGroceryList] = useState(false);
   const [weeklyContext, setWeeklyContext] = useState('');
-  const [groceryItems, setGroceryItems] = useState([]);
-  const [newItem, setNewItem] = useState('');
   const [savedRecipes, setSavedRecipes] = useState([]);
+  const [showFullPlan, setShowFullPlan] = useState(false);
 
   useEffect(() => {
     const fetchRecipes = async () => {
@@ -20,43 +15,18 @@ export default function Home() {
       if (data) setSavedRecipes(data);
     };
     fetchRecipes();
-
     const savedMealPlan = localStorage.getItem('mealPlan');
-    const savedGroceryItems = localStorage.getItem('groceryItems');
     if (savedMealPlan) setMealPlan(savedMealPlan);
-    if (savedGroceryItems) setGroceryItems(JSON.parse(savedGroceryItems));
   }, []);
 
-  const generateMealPlan = async () => {
-    setLoadingMealPlan(true);
-    setMealPlan('');
-    setGroceryList('');
-    setGroceryItems([]);
+  const generateGroceryList = async (plan) => {
     try {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'meal-plan', weeklyContext }),
+        body: JSON.stringify({ type: 'grocery-list', mealPlan: plan }),
       });
       const data = await res.json();
-      setMealPlan(data.result);
-localStorage.setItem('mealPlan', data.result);
-    } catch (error) {
-      setMealPlan('Something went wrong. Please try again.');
-    }
-    setLoadingMealPlan(false);
-  };
-
-  const generateGroceryList = async () => {
-    setLoadingGroceryList(true);
-    try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'grocery-list', mealPlan }),
-      });
-      const data = await res.json();
-      setGroceryList(data.result);
       const lines = data.result.split('\n');
       const items = [];
       let currentCategory = '';
@@ -67,18 +37,35 @@ localStorage.setItem('mealPlan', data.result);
           items.push({ id: i, text: line.slice(2), checked: false, category: currentCategory });
         }
       });
-      setGroceryItems(items);
-localStorage.setItem('groceryItems', JSON.stringify(items));
+      localStorage.setItem('groceryItems', JSON.stringify(items));
     } catch (error) {
-      setGroceryList('Something went wrong. Please try again.');
+      console.error('Grocery list error:', error);
     }
-    setLoadingGroceryList(false);
+  };
+
+  const generateMealPlan = async () => {
+    setLoadingMealPlan(true);
+    setMealPlan('');
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'meal-plan', weeklyContext }),
+      });
+      const data = await res.json();
+      setMealPlan(data.result);
+      localStorage.setItem('mealPlan', data.result);
+      generateGroceryList(data.result);
+    } catch (error) {
+      setMealPlan('Something went wrong. Please try again.');
+    }
+    setLoadingMealPlan(false);
   };
 
   const formatText = (text) => {
     return text.split('\n').map((line, i) => {
       if (line.startsWith('**') && line.endsWith('**')) {
-        return <h3 key={i} style={{ color: '#5aa0b4', fontWeight: '500' }} className="text-lg mt-4 mb-1">{line.replace(/\*\*/g, '')}</h3>;
+        return <h3 key={i} style={{ color: '#5AA0B4', fontWeight: '500' }} className="text-lg mt-4 mb-1">{line.replace(/\*\*/g, '')}</h3>;
       }
       if (line.startsWith('- ')) {
         const content = line.slice(2);
@@ -92,7 +79,7 @@ localStorage.setItem('groceryItems', JSON.stringify(items));
             element = (
               <span>
                 {before}
-                <a href={`/recipes?id=${recipe.id}`} style={{ color: '#d5824a', textDecoration: 'underline', fontWeight: '400' }}>{match}</a>
+                <a href={`/recipes?id=${recipe.id}`} style={{ color: '#D5824A', textDecoration: 'underline', fontWeight: '400' }}>{match}</a>
                 {after}
               </span>
             );
@@ -101,23 +88,40 @@ localStorage.setItem('groceryItems', JSON.stringify(items));
         }
         return <p key={i} style={{ fontWeight: '300' }} className="ml-2 text-gray-700">• {element}</p>;
       }
-      if (line.trim() === '') {
-        return <br key={i} />;
-      }
+      if (line.trim() === '') return <br key={i} />;
       return <p key={i} style={{ fontWeight: '300' }} className="text-gray-700">{line}</p>;
     });
   };
 
-  const grouped = groceryItems.reduce((groups, item) => {
-    const cat = item.category || 'Other';
-    if (!groups[cat]) groups[cat] = [];
-    groups[cat].push(item);
-    return groups;
-  }, {});
+  const getTodaysMeals = (plan) => {
+    if (!plan) return null;
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const today = days[new Date().getDay()];
+    const lines = plan.split('\n');
+    let inToday = false;
+    let meals = { breakfast: '', lunch: '', dinner: '', snacks: '', baby: '' };
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (line.includes(`**${today}**`)) { inToday = true; continue; }
+      if (inToday && line.startsWith('**') && !line.includes(today)) break;
+      if (inToday) {
+        const lower = line.toLowerCase();
+        if (lower.includes('breakfast:')) meals.breakfast = line.split(':').slice(1).join(':').trim();
+        if (lower.includes('lunch:')) meals.lunch = line.split(':').slice(1).join(':').trim();
+        if (lower.includes('dinner:')) meals.dinner = line.split(':').slice(1).join(':').trim();
+        if (lower.includes('snack')) meals.snacks = line.split(':').slice(1).join(':').trim();
+        if (lower.includes('baby')) meals.baby = line.split(':').slice(1).join(':').trim();
+      }
+    }
+    return meals.breakfast || meals.lunch || meals.dinner ? meals : null;
+  };
+
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const today = days[new Date().getDay()];
+  const todaysMeals = getTodaysMeals(mealPlan);
 
   return (
-    <main className="min-h-screen" style={{ backgroundColor: '#d9d0bc' }}>
-
+    <main className="min-h-screen" style={{ backgroundColor: '#F9D7B5' }}>
       {/* Header */}
       <div className="p-6 text-center" style={{ backgroundColor: '#5AA0B4' }}>
         <h1 className="text-2xl text-white tracking-wide" style={{ fontWeight: '500' }}>🥗 Happy Belly</h1>
@@ -125,34 +129,6 @@ localStorage.setItem('groceryItems', JSON.stringify(items));
       </div>
 
       <div className="max-w-2xl mx-auto p-4" style={{ paddingBottom: '100px' }}>
-
-        {/* Family Profiles */}
-        <div className="bg-white rounded-2xl p-5 mt-4 shadow-sm">
-          <h2 className="text-gray-800 mb-3 tracking-wide" style={{ fontWeight: '500' }}>Your Family</h2>
-          <div className="space-y-3">
-            <div className="flex items-start gap-3">
-              <span className="text-xl">👩</span>
-              <div>
-                <p className="text-sm text-gray-800" style={{ fontWeight: '400' }}>You</p>
-                <p className="text-xs text-gray-400 mt-0.5" style={{ fontWeight: '300' }}>5'9" · Postpartum · Sand volleyball · 140-165g protein/day</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="text-xl">👨</span>
-              <div>
-                <p className="text-sm text-gray-800" style={{ fontWeight: '400' }}>Your Husband</p>
-                <p className="text-xs text-gray-400 mt-0.5" style={{ fontWeight: '300' }}>6'5" · Athletic · Strength training · High protein + carbs</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="text-xl">👶</span>
-              <div>
-                <p className="text-sm text-gray-800" style={{ fontWeight: '400' }}>Baby</p>
-                <p className="text-xs text-gray-400 mt-0.5" style={{ fontWeight: '300' }}>~6 months · Starting solids · Iron-rich foods · 2 tbsp portions</p>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Weekly Context */}
         <div className="bg-white rounded-2xl p-5 mt-4 shadow-sm">
@@ -172,101 +148,54 @@ localStorage.setItem('groceryItems', JSON.stringify(items));
           onClick={generateMealPlan}
           disabled={loadingMealPlan}
           className="w-full text-white rounded-2xl p-4 mt-4 text-base shadow-sm disabled:opacity-60 tracking-wide"
-          style={{ backgroundColor: '#d5824a', fontWeight: '400', color: 'white' }}
+          style={{ backgroundColor: '#D5824A', fontWeight: '400', color: 'white' }}
         >
           {loadingMealPlan ? '⏳ Generating your meal plan...' : '🗓️ Generate This Week\'s Meal Plan'}
         </button>
 
-        {/* Meal Plan Display */}
+        {/* Today's Meals */}
         {mealPlan && (
-          <div className="bg-white rounded-2xl p-5 mt-4 shadow-sm">
-            <h2 className="text-gray-800 mb-3 tracking-wide" style={{ fontWeight: '500' }}>This Week's Meal Plan</h2>
-            <div className="text-sm leading-relaxed">{formatText(mealPlan)}</div>
-          </div>
-        )}
-
-        {/* Generate Grocery List Button */}
-        {mealPlan && (
-          <button
-            onClick={generateGroceryList}
-            disabled={loadingGroceryList}
-            className="w-full text-white rounded-2xl p-4 mt-4 text-base shadow-sm disabled:opacity-60 tracking-wide"
-            style={{ backgroundColor: '#99b8b8', fontWeight: '400', color: 'white' }}
-          >
-            {loadingGroceryList ? '⏳ Building your grocery list...' : '🛒 Generate Grocery List'}
-          </button>
-        )}
-
-        {/* Grocery List Display */}
-        {groceryItems.length > 0 && (
-          <div className="bg-white rounded-2xl p-5 mt-4 shadow-sm mb-8">
-            <h2 className="text-gray-800 mb-3 tracking-wide" style={{ fontWeight: '500' }}>Grocery List</h2>
-
-            {/* Add Item */}
-            <div className="flex gap-2 mb-4">
-              <input
-                className="flex-1 border border-gray-200 rounded-xl p-2 text-sm"
-                placeholder="Add an item..."
-                value={newItem}
-                onChange={e => setNewItem(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && newItem.trim()) {
-                    setGroceryItems([...groceryItems, { id: Date.now(), text: newItem.trim(), checked: false, category: 'Other' }]);
-                    setNewItem('');
-                  }
-                }}
-                style={{ fontWeight: '300' }}
-              />
+          <div className="mt-4">
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-xs tracking-wide" style={{ color: '#5AA0B4', fontWeight: '600' }}>TODAY — {today.toUpperCase()}</p>
               <button
-                onClick={() => {
-                  if (newItem.trim()) {
-                    setGroceryItems([...groceryItems, { id: Date.now(), text: newItem.trim(), checked: false, category: 'Other' }]);
-                    setNewItem('');
-                  }
-                }}
-                className="text-white rounded-xl px-3 text-sm"
-                style={{ backgroundColor: '#d5824a', color: 'white', fontWeight: '400' }}
+                onClick={() => setShowFullPlan(!showFullPlan)}
+                style={{ color: '#404F43', fontWeight: '400', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px' }}
               >
-                Add
+                {showFullPlan ? 'Hide full plan' : 'View full week'}
               </button>
             </div>
 
-            {/* Grouped Items */}
-            <div className="space-y-4">
-              {Object.entries(grouped).map(([category, items]) => (
-                <div key={category}>
-                  <p className="text-xs tracking-wide mb-2" style={{ color: '#5aa0b4', fontWeight: '600' }}>{category}</p>
-                  <div className="space-y-2">
-                    {items.map(item => (
-                      <div key={item.id} className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={item.checked}
-                          onChange={() => setGroceryItems(groceryItems.map(i =>
-                            i.id === item.id ? { ...i, checked: !i.checked } : i
-                          ))}
-                          className="w-4 h-4 rounded"
-                          style={{ accentColor: '#5aa0b4' }}
-                        />
-                        <span
-                          className="flex-1 text-sm"
-                          style={{ fontWeight: '300', textDecoration: item.checked ? 'line-through' : 'none', color: item.checked ? '#9ca3af' : '#374151' }}
-                        >
-                          {item.text}
-                        </span>
-                        <button
-                          onClick={() => setGroceryItems(groceryItems.filter(i => i.id !== item.id))}
-                          className="text-gray-300 text-lg"
-                          style={{ lineHeight: 1, backgroundColor: '#d9d0bc', borderRadius: '6px', padding: '2px 6px', border: 'none' }}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
+            {todaysMeals ? (
+              <div className="space-y-2">
+                {[
+                  { label: 'Breakfast', value: todaysMeals.breakfast, emoji: '🌅' },
+                  { label: 'Lunch', value: todaysMeals.lunch, emoji: '☀️' },
+                  { label: 'Dinner', value: todaysMeals.dinner, emoji: '🌙' },
+                  { label: 'Snacks', value: todaysMeals.snacks, emoji: '🍎' },
+                  { label: "Baby's Meal", value: todaysMeals.baby, emoji: '👶' },
+                ].filter(m => m.value).map(meal => (
+                  <div key={meal.label} className="bg-white rounded-2xl p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span>{meal.emoji}</span>
+                      <p className="text-xs" style={{ color: '#9AAC9D', fontWeight: '500' }}>{meal.label.toUpperCase()}</p>
+                    </div>
+                    <p className="text-sm text-gray-700" style={{ fontWeight: '300' }}>{meal.value}</p>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl p-5 shadow-sm text-center">
+                <p className="text-sm" style={{ color: '#9AAC9D', fontWeight: '300' }}>No meals found for today. Try regenerating your meal plan!</p>
+              </div>
+            )}
+
+            {showFullPlan && (
+              <div className="bg-white rounded-2xl p-5 mt-2 shadow-sm">
+                <h2 className="text-gray-800 mb-3" style={{ fontWeight: '500' }}>Full Week</h2>
+                <div className="text-sm leading-relaxed">{formatText(mealPlan)}</div>
+              </div>
+            )}
           </div>
         )}
 

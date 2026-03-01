@@ -13,5 +13,53 @@ body {
   background-color: #F9D7B5;
   margin: 0;
   padding: 0;
-  padding-bottom: 200px;
+  padding-bottom: 80px;
+}
+
+.desktop-layout {
+  display: none;
+}
+
+.mobile-layout {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .desktop-layout {
+    display: block;
+  }
+  .mobile-layout {
+    display: none;
+  }
+  body {
+    padding-bottom: 0;
+  }
+}
+.nav-item {
+  position: relative;
+}
+
+.nav-tooltip {
+  display: none;
+  position: absolute;
+  left: 52px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #404F43;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 200;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 400;
+}
+
+.nav-item:hover .nav-tooltip {
+  display: block;
+}
+
+.nav-item:hover {
+  background-color: #F9D7B5;
 }

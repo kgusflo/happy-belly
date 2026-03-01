@@ -1,4 +1,6 @@
 import "./globals.css";
+import Sidebar from './components/Sidebar';
+import BottomNav from './components/BottomNav';
 
 export const metadata = {
   title: "Happy Belly",
@@ -9,44 +11,35 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body style={{ margin: 0, padding: 0, backgroundColor: '#F9D7B5', fontFamily: 'Montserrat, sans-serif' }}>
-        {children}
-        <BottomNav />
+
+        {/* Desktop Layout */}
+        <div className="desktop-layout">
+          <Sidebar />
+          <div style={{ marginLeft: '60px', marginRight: '300px', minHeight: '100vh', padding: '24px' }}>
+            {children}
+          </div>
+          <div style={{
+            position: 'fixed',
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: '300px',
+            backgroundColor: '#5AA0B4',
+            borderLeft: '1px solid #88B0B4',
+            padding: '24px 16px',
+            overflowY: 'auto',
+          }}>
+            <p style={{ fontSize: '16px', fontWeight: '500', color: 'white', marginBottom: '16px' }}>🛒 Grocery List</p>
+          </div>
+        </div>
+
+        {/* Mobile Layout */}
+        <div className="mobile-layout">
+          {children}
+          <BottomNav />
+        </div>
+
       </body>
     </html>
-  );
-}
-
-function BottomNav() {
-  return (
-    <nav style={{
-      position: 'fixed',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      backgroundColor: 'white',
-      borderTop: '1px solid #e5e7eb',
-      display: 'flex',
-      justifyContent: 'space-around',
-      alignItems: 'center',
-      padding: '8px 0 16px 0',
-      zIndex: 100,
-    }}>
-      <a href="/" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none', gap: '2px' }}>
-        <span style={{ fontSize: '20px' }}>🏠</span>
-        <span style={{ fontSize: '10px', color: '#9AAC9D', fontWeight: '500' }}>Meals</span>
-      </a>
-      <a href="/recipes" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none', gap: '2px' }}>
-        <span style={{ fontSize: '20px' }}>📖</span>
-        <span style={{ fontSize: '10px', color: '#9AAC9D', fontWeight: '500' }}>Recipes</span>
-      </a>
-      <a href="/grocery" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none', gap: '2px' }}>
-        <span style={{ fontSize: '20px' }}>🛒</span>
-        <span style={{ fontSize: '10px', color: '#9AAC9D', fontWeight: '500' }}>Grocery</span>
-      </a>
-      <a href="/settings" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none', gap: '2px' }}>
-        <span style={{ fontSize: '20px' }}>⚙️</span>
-        <span style={{ fontSize: '10px', color: '#9AAC9D', fontWeight: '500' }}>Settings</span>
-      </a>
-    </nav>
   );
 }

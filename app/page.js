@@ -10,13 +10,20 @@ export default function Home() {
   const [showFullPlan, setShowFullPlan] = useState(false);
 
   useEffect(() => {
-    const fetchRecipes = async () => {
-      const { data } = await supabase.from('recipes').select('id, name');
-      if (data) setSavedRecipes(data);
+    const init = async () => {
+      const { data: recipes } = await supabase.from('recipes').select('id, name');
+      if (recipes) setSavedRecipes(recipes);
+
+      const { data: planData } = await supabase.from('meal_plans').select('plan_text').eq('id', 1).single();
+      if (planData?.plan_text) {
+        setMealPlan(planData.plan_text);
+        localStorage.setItem('mealPlan', planData.plan_text);
+      } else {
+        const saved = localStorage.getItem('mealPlan');
+        if (saved) setMealPlan(saved);
+      }
     };
-    fetchRecipes();
-    const savedMealPlan = localStorage.getItem('mealPlan');
-    if (savedMealPlan) setMealPlan(savedMealPlan);
+    init();
   }, []);
 
   const generateGroceryList = async (plan) => {
@@ -56,6 +63,7 @@ export default function Home() {
       const data = await res.json();
       setMealPlan(data.result);
       localStorage.setItem('mealPlan', data.result);
+      await supabase.from('meal_plans').update({ plan_text: data.result }).eq('id', 1);
       generateGroceryList(data.result);
     } catch (error) {
       setMealPlan('Something went wrong. Please try again.');

@@ -77,7 +77,7 @@ ${weeklyContext ? `This week's context from the user: ${weeklyContext}` : ''}`;
   { "category": "Pantry & Dry Goods", "items": ["olive oil", "brown rice (2 cups)"] },
   { "category": "Frozen", "items": ["edamame (1 bag)"] }
 ]
-Include quantities. This is for 2 adults and a 6-month-old baby.`;
+Include quantities for 2 adults only. Do not include baby portions or notes in the grocery list.`;
     }
 
     const message = await client.messages.create({

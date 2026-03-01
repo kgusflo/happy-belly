@@ -20,6 +20,11 @@ export default function Home() {
       if (data) setSavedRecipes(data);
     };
     fetchRecipes();
+
+    const savedMealPlan = localStorage.getItem('mealPlan');
+    const savedGroceryItems = localStorage.getItem('groceryItems');
+    if (savedMealPlan) setMealPlan(savedMealPlan);
+    if (savedGroceryItems) setGroceryItems(JSON.parse(savedGroceryItems));
   }, []);
 
   const generateMealPlan = async () => {
@@ -35,6 +40,7 @@ export default function Home() {
       });
       const data = await res.json();
       setMealPlan(data.result);
+localStorage.setItem('mealPlan', data.result);
     } catch (error) {
       setMealPlan('Something went wrong. Please try again.');
     }
@@ -62,6 +68,7 @@ export default function Home() {
         }
       });
       setGroceryItems(items);
+localStorage.setItem('groceryItems', JSON.stringify(items));
     } catch (error) {
       setGroceryList('Something went wrong. Please try again.');
     }
@@ -112,16 +119,12 @@ export default function Home() {
     <main className="min-h-screen" style={{ backgroundColor: '#d9d0bc' }}>
 
       {/* Header */}
-      <div className="p-6 text-center relative" style={{ backgroundColor: '#5aa0b4' }}>
+      <div className="p-6 text-center" style={{ backgroundColor: '#5AA0B4' }}>
         <h1 className="text-2xl text-white tracking-wide" style={{ fontWeight: '500' }}>🥗 Happy Belly</h1>
-        <p className="text-sm mt-1" style={{ color: '#d9d0bc', fontWeight: '300' }}>Family meal planning made easy</p>
-        <div className="flex justify-center gap-4 mt-3">
-          <a href="/profiles" className="text-xs px-3 py-1 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.2)', fontWeight: '400', color: 'black' }}>👨‍👩‍👦 Profiles</a>
-          <a href="/recipes" className="text-xs px-3 py-1 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.2)', fontWeight: '400', color: 'black' }}>📖 Recipes</a>
-        </div>
+        <p className="text-sm mt-1" style={{ color: '#F9D7B5', fontWeight: '300' }}>Family meal planning made easy</p>
       </div>
 
-      <div className="max-w-2xl mx-auto p-4">
+      <div className="max-w-2xl mx-auto p-4" style={{ paddingBottom: '100px' }}>
 
         {/* Family Profiles */}
         <div className="bg-white rounded-2xl p-5 mt-4 shadow-sm">

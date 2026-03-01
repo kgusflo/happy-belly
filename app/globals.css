@@ -6,8 +6,12 @@
 
 * {
   font-family: 'Montserrat', sans-serif;
+  box-sizing: border-box;
 }
 
 body {
-  background-color: #d9d0bc;
+  background-color: #F9D7B5;
+  margin: 0;
+  padding: 0;
+  padding-bottom: 200px;
 }

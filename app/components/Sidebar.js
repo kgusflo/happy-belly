@@ -1,14 +1,11 @@
 'use client';
-
 import Home from 'lucide-react/dist/esm/icons/home';
 import BookOpen from 'lucide-react/dist/esm/icons/book-open';
-import ShoppingCart from 'lucide-react/dist/esm/icons/shopping-cart';
 import Settings from 'lucide-react/dist/esm/icons/settings';
 
 const navItems = [
   { href: '/', icon: Home, label: 'Meals' },
   { href: '/recipes', icon: BookOpen, label: 'Recipes' },
-  { href: '/grocery', icon: ShoppingCart, label: 'Grocery' },
   { href: '/settings', icon: Settings, label: 'Settings' },
 ];
 

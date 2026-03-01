@@ -89,7 +89,7 @@ export default function Home() {
         return <p key={i} style={{ fontWeight: '300' }} className="ml-2 text-gray-700">• {element}</p>;
       }
       if (line.trim() === '') return <br key={i} />;
-      return <p key={i} style={{ fontWeight: '300' }} className="text-gray-700">{line}</p>;
+      return <p key={i} style={{ fontWeight: '300' }} className="text-gray-700">{line.replace(/\*\*/g, '').replace(/^#+\s?/, '')}</p>;
     });
   };
 
@@ -115,85 +115,166 @@ export default function Home() {
     }
     return meals.breakfast || meals.lunch || meals.dinner ? meals : null;
   };
+const getAllDaysMeals = (plan) => {
+    if (!plan) return [];
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const result = [];
+    for (const day of days) {
+      const lines = plan.split('\n');
+      let inDay = false;
+      let meals = { breakfast: '', lunch: '', dinner: '', snacks: '', baby: '' };
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.includes(`**${day}**`)) { inDay = true; continue; }
+        if (inDay && line.startsWith('**') && !line.includes(day)) break;
+        if (inDay) {
+          const lower = line.toLowerCase();
+          if (lower.includes('breakfast:')) meals.breakfast = line.split(':').slice(1).join(':').trim().replace(/\*\*/g, '');
+          if (lower.includes('lunch:')) meals.lunch = line.split(':').slice(1).join(':').trim().replace(/\*\*/g, '');
+          if (lower.includes('dinner:')) meals.dinner = line.split(':').slice(1).join(':').trim().replace(/\*\*/g, '');
+          if (lower.includes('snack')) meals.snacks = line.split(':').slice(1).join(':').trim().replace(/\*\*/g, '');
+          if (lower.includes('baby')) meals.baby = line.split(':').slice(1).join(':').trim().replace(/\*\*/g, '');
+        }
+      }
+      if (meals.breakfast || meals.lunch || meals.dinner) {
+        result.push({ day, meals });
+      }
+    }
+    return result;
+  };
 
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const today = days[new Date().getDay()];
   const todaysMeals = getTodaysMeals(mealPlan);
 
   return (
-    <main className="min-h-screen" style={{ backgroundColor: '#F9D7B5' }}>
-      {/* Header */}
-      <div className="p-6 text-center" style={{ backgroundColor: '#5AA0B4' }}>
-        <h1 className="text-2xl text-white tracking-wide" style={{ fontWeight: '500' }}>🥗 Happy Belly</h1>
-        <p className="text-sm mt-1" style={{ color: '#F9D7B5', fontWeight: '300' }}>Family meal planning made easy</p>
+    <main style={{ backgroundColor: '#F9D7B5', minHeight: '100vh' }}>
+
+      {/* Slim Header */}
+      <div style={{ backgroundColor: '#5AA0B4', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottomLeftRadius: '20px', borderBottomRightRadius: '20px' }}>
+
+        <div>
+          <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'white', letterSpacing: '0.5px' }}>Happy Belly</h1>
+          <p style={{ margin: 0, fontSize: '11px', color: '#F9D7B5', fontWeight: '300' }}>Family meal planning</p>
+        </div>
       </div>
 
-      <div className="max-w-2xl mx-auto p-4" style={{ paddingBottom: '100px' }}>
+      <div style={{ maxWidth: '680px', margin: '0 auto', padding: '20px 16px 100px 16px' }}>
 
-        {/* Weekly Context */}
-        <div className="bg-white rounded-2xl p-5 mt-4 shadow-sm">
-          <h2 className="text-gray-800 mb-2 tracking-wide" style={{ fontWeight: '500' }}>This Week's Context</h2>
+        {/* Context Input */}
+        <div style={{ marginBottom: '16px' }}>
+          <p style={{ fontSize: '12px', fontWeight: '500', color: '#9AAC9D', marginBottom: '8px', letterSpacing: '0.5px' }}>THIS WEEK</p>
           <textarea
-            className="w-full border border-gray-200 rounded-xl p-3 text-sm"
-            placeholder="Tell me about your week... cravings, schedule, training plans, anything that should shape your meal plan!"
-            rows={4}
+            placeholder="Tell me about your week... cravings, schedule, training plans..."
+            rows={3}
             value={weeklyContext}
             onChange={e => setWeeklyContext(e.target.value)}
-            style={{ fontWeight: '300' }}
+            style={{
+              width: '100%',
+              backgroundColor: '#F9D7B5',
+              border: '1.5px solid #BDC2B4',
+              borderRadius: '16px',
+              padding: '12px 16px',
+              fontSize: '13px',
+              fontWeight: '300',
+              fontFamily: 'Montserrat, sans-serif',
+              resize: 'none',
+              outline: 'none',
+              boxSizing: 'border-box',
+              color: '#404F43',
+            }}
           />
         </div>
 
-        {/* Generate Meal Plan Button */}
-        <button
-          onClick={generateMealPlan}
-          disabled={loadingMealPlan}
-          className="w-full text-white rounded-2xl p-4 mt-4 text-base shadow-sm disabled:opacity-60 tracking-wide"
-          style={{ backgroundColor: '#D5824A', fontWeight: '400', color: 'white' }}
-        >
-          {loadingMealPlan ? '⏳ Generating your meal plan...' : '🗓️ Generate This Week\'s Meal Plan'}
-        </button>
+        {/* Pill Button */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+          <button
+            onClick={generateMealPlan}
+            disabled={loadingMealPlan}
+            style={{
+              backgroundColor: '#D5824A',
+              color: 'white',
+              border: 'none',
+              borderRadius: '50px',
+              padding: '12px 32px',
+              fontSize: '14px',
+              fontWeight: '500',
+              fontFamily: 'Montserrat, sans-serif',
+              cursor: 'pointer',
+              opacity: loadingMealPlan ? 0.6 : 1,
+              letterSpacing: '0.3px',
+            }}
+          >
+            {loadingMealPlan ? '⏳ Generating...' : '🗓️ Generate Meal Plan'}
+          </button>
+        </div>
 
         {/* Today's Meals */}
         {mealPlan && (
-          <div className="mt-4">
-            <div className="flex justify-between items-center mb-2">
-              <p className="text-xs tracking-wide" style={{ color: '#5AA0B4', fontWeight: '600' }}>TODAY — {today.toUpperCase()}</p>
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <p style={{ fontSize: '12px', fontWeight: '600', color: '#9AAC9D', margin: 0, letterSpacing: '0.5px' }}>TODAY — {today.toUpperCase()}</p>
               <button
                 onClick={() => setShowFullPlan(!showFullPlan)}
-                style={{ color: '#404F43', fontWeight: '400', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px' }}
+                style={{ color: '#404F43', fontWeight: '400', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', fontFamily: 'Montserrat, sans-serif' }}
               >
                 {showFullPlan ? 'Hide full plan' : 'View full week'}
               </button>
             </div>
 
             {todaysMeals ? (
-              <div className="space-y-2">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {[
-                  { label: 'Breakfast', value: todaysMeals.breakfast, emoji: '🌅' },
-                  { label: 'Lunch', value: todaysMeals.lunch, emoji: '☀️' },
-                  { label: 'Dinner', value: todaysMeals.dinner, emoji: '🌙' },
-                  { label: 'Snacks', value: todaysMeals.snacks, emoji: '🍎' },
-                  { label: "Baby's Meal", value: todaysMeals.baby, emoji: '👶' },
+                  { label: 'BREAKFAST', value: todaysMeals.breakfast, emoji: '🌅' },
+                  { label: 'LUNCH', value: todaysMeals.lunch, emoji: '☀️' },
+                  { label: 'DINNER', value: todaysMeals.dinner, emoji: '🌙' },
+                  { label: 'SNACKS', value: todaysMeals.snacks, emoji: '🍎' },
+                  { label: "BABY'S MEAL", value: todaysMeals.baby, emoji: '👶' },
                 ].filter(m => m.value).map(meal => (
-                  <div key={meal.label} className="bg-white rounded-2xl p-4 shadow-sm">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span>{meal.emoji}</span>
-                      <p className="text-xs" style={{ color: '#9AAC9D', fontWeight: '500' }}>{meal.label.toUpperCase()}</p>
+                  <div key={meal.label} style={{
+                    backgroundColor: 'white',
+                    borderRadius: '20px',
+                    padding: '16px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '16px' }}>{meal.emoji}</span>
+                      <p style={{ margin: 0, fontSize: '11px', fontWeight: '600', color: '#E2A06F', letterSpacing: '0.8px' }}>{meal.label}</p>
                     </div>
-                    <p className="text-sm text-gray-700" style={{ fontWeight: '300' }}>{meal.value}</p>
+                    <p style={{ margin: 0, fontSize: '14px', fontWeight: '300', color: '#404F43', lineHeight: '1.5' }}>{meal.value.replace(/\*\*/g, '')}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="bg-white rounded-2xl p-5 shadow-sm text-center">
-                <p className="text-sm" style={{ color: '#9AAC9D', fontWeight: '300' }}>No meals found for today. Try regenerating your meal plan!</p>
+              <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '24px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                <p style={{ color: '#9AAC9D', fontWeight: '300', fontSize: '14px', margin: 0 }}>No meals found for today. Try regenerating!</p>
               </div>
             )}
 
             {showFullPlan && (
-              <div className="bg-white rounded-2xl p-5 mt-2 shadow-sm">
-                <h2 className="text-gray-800 mb-3" style={{ fontWeight: '500' }}>Full Week</h2>
-                <div className="text-sm leading-relaxed">{formatText(mealPlan)}</div>
+              <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {getAllDaysMeals(mealPlan).map(({ day, meals }) => (
+                  <div key={day} style={{ backgroundColor: 'white', borderRadius: '20px', padding: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                    <p style={{ margin: '0 0 12px 0', fontSize: '13px', fontWeight: '600', color: '#5AA0B4', letterSpacing: '0.5px' }}>{day.toUpperCase()}</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {[
+                        { label: 'Breakfast', value: meals.breakfast, emoji: '🌅' },
+                        { label: 'Lunch', value: meals.lunch, emoji: '☀️' },
+                        { label: 'Dinner', value: meals.dinner, emoji: '🌙' },
+                        { label: 'Snacks', value: meals.snacks, emoji: '🍎' },
+                        { label: "Baby's Meal", value: meals.baby, emoji: '👶' },
+                      ].filter(m => m.value).map(meal => (
+                        <div key={meal.label} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                          <span style={{ fontSize: '14px', marginTop: '1px' }}>{meal.emoji}</span>
+                          <div>
+                            <p style={{ margin: 0, fontSize: '10px', fontWeight: '600', color: '#E2A06F', letterSpacing: '0.8px' }}>{meal.label.toUpperCase()}</p>
+                            <p style={{ margin: 0, fontSize: '13px', fontWeight: '300', color: '#404F43', lineHeight: '1.5' }}>{meal.value}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>

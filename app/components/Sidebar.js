@@ -1,12 +1,12 @@
 'use client';
 import Home from 'lucide-react/dist/esm/icons/home';
 import BookOpen from 'lucide-react/dist/esm/icons/book-open';
-import Settings from 'lucide-react/dist/esm/icons/settings';
+import User from 'lucide-react/dist/esm/icons/user';
 
 const navItems = [
   { href: '/', icon: Home, label: 'Meals' },
   { href: '/recipes', icon: BookOpen, label: 'Recipes' },
-  { href: '/profiles', icon: Settings, label: 'Profiles' },
+  { href: '/profiles', icon: User, label: 'Profiles' },
 ];
 
 export default function Sidebar() {

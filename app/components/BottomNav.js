@@ -1,6 +1,6 @@
 'use client';
 
-import { Home, BookOpen, ShoppingCart, Settings } from 'lucide-react';
+import { Home, BookOpen, ShoppingCart, User } from 'lucide-react';
 
 export default function BottomNav() {
   return (
@@ -30,7 +30,7 @@ export default function BottomNav() {
         <span style={{ fontSize: '10px', color: '#9AAC9D', fontWeight: '500' }}>Recipes</span>
       </a>
       <a href="/profiles" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none', gap: '2px' }}>
-        <Settings size={20} color="#9AAC9D" />
+        <User size={20} color="#9AAC9D" />
         <span style={{ fontSize: '10px', color: '#9AAC9D', fontWeight: '500' }}>Profiles</span>
       </a>
     </nav>

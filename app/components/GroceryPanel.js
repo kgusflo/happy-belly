@@ -64,7 +64,7 @@ export default function GroceryPanel() {
                     <input type="checkbox" checked={true}
                       onChange={() => saveItems(groceryItems.map(i => i.id === item.id ? { ...i, checked: false } : i))}
                       style={{ accentColor: '#F9D7B5', width: '14px', height: '14px', flexShrink: 0 }} />
-                    <span style={{ fontSize: '13px', fontWeight: '300', color: '#88B0B4', textDecoration: 'line-through', lineHeight: '1.3' }}>{item.text}</span>
+                    <span style={{ fontSize: '13px', fontWeight: '300', color: 'white', textDecoration: 'line-through', lineHeight: '1.3' }}>{item.text}</span>
                   </div>
                 ))}
               </div>

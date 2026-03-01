@@ -10,22 +10,19 @@ export default function Profiles() {
   const [saving, setSaving] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
 
+   const fetchMembers = async () => {
+    const { data } = await supabase.from('family_members').select('*').order('created_at');
+    if (data) setMembers(data);
+    setLoading(false);
+  };
+
 useEffect(() => {
+  fetchMembers();
   const check = () => setIsDesktop(window.innerWidth >= 1024);
   check();
   window.addEventListener('resize', check);
   return () => window.removeEventListener('resize', check);
 }, []);
-
-  useEffect(() => {
-    fetchMembers();
-  }, []);
-
-  const fetchMembers = async () => {
-    const { data } = await supabase.from('family_members').select('*').order('created_at');
-    if (data) setMembers(data);
-    setLoading(false);
-  };
 
   const saveProfile = async (member) => {
     setSaving(true);

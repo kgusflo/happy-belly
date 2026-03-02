@@ -150,6 +150,26 @@ export default function Home() {
     return result;
   };
 
+  const linkifyMeal = (text) => {
+    const clean = text.replace(/\*\*/g, '');
+    for (const recipe of savedRecipes) {
+      const idx = clean.toLowerCase().indexOf(recipe.name.toLowerCase());
+      if (idx !== -1) {
+        const before = clean.slice(0, idx);
+        const match = clean.slice(idx, idx + recipe.name.length);
+        const after = clean.slice(idx + recipe.name.length);
+        return (
+          <span>
+            {before}
+            <a href={`/recipes?id=${recipe.id}`} style={{ color: '#D5824A', textDecoration: 'underline', fontWeight: '400' }}>{match}</a>
+            {after}
+          </span>
+        );
+      }
+    }
+    return clean;
+  };
+
   const handleTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
@@ -346,7 +366,7 @@ export default function Home() {
                           {swapping?.day === selectedDay && swapping?.mealType === meal.label ? '⏳' : <Shuffle size={14} color="#BDC2B4" />}
                         </button>
                       </div>
-                      <p style={{ margin: 0, fontSize: '14px', fontWeight: '300', color: '#404F43', lineHeight: '1.5' }}>{meal.value.replace(/\*\*/g, '')}</p>
+                      <p style={{ margin: 0, fontSize: '14px', fontWeight: '300', color: '#404F43', lineHeight: '1.5' }}>{linkifyMeal(meal.value)}</p>
                     </div>
                   ))}
                 </div>

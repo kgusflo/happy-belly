@@ -201,7 +201,7 @@ const editRecipe = (recipe) => {
         {view !== 'list' && (
           <button onClick={() => { setView('list'); setSelected(null); }}
             style={{ position: 'absolute', left: '16px', background: 'none', border: 'none', cursor: 'pointer', color: 'black', fontSize: '14px', fontFamily: 'Montserrat, sans-serif', fontWeight: '300', top: '50%', transform: 'translateY(-50%)' }}>
-            ← Back
+            ← 
           </button>
         )}
         <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'white', paddingLeft: view !== 'list' ? '60px' : '0', paddingRight: view !== 'list' ? '60px' : '0', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

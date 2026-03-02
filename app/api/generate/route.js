@@ -93,11 +93,12 @@ export async function POST(request) {
       .order('created_at', { ascending: false })
       .limit(100);
     const likedMeals = (feedbackData || []).filter(f => f.rating === 'liked').map(f => f.meal_name);
-    const dislikedMeals = (feedbackData || []).filter(f => f.rating === 'disliked').map(f =>
+    const onBreakMeals = (feedbackData || []).filter(f => f.rating === 'disliked' && f.feedback_notes?.includes('Taking a break')).map(f => f.meal_name);
+    const dislikedMeals = (feedbackData || []).filter(f => f.rating === 'disliked' && !f.feedback_notes?.includes('Taking a break')).map(f =>
       f.feedback_notes ? `${f.meal_name} (${f.feedback_notes})` : f.meal_name
     );
-    const feedbackSection = (likedMeals.length > 0 || dislikedMeals.length > 0)
-      ? `\nMEAL PREFERENCES FROM PAST FEEDBACK:\n${likedMeals.length > 0 ? `- Meals they enjoyed: ${likedMeals.slice(0, 15).join(', ')}\n` : ''}${dislikedMeals.length > 0 ? `- Meals to avoid / disliked: ${dislikedMeals.slice(0, 15).join(', ')}\n` : ''}`
+    const feedbackSection = (likedMeals.length > 0 || dislikedMeals.length > 0 || onBreakMeals.length > 0)
+      ? `\nMEAL PREFERENCES FROM PAST FEEDBACK:\n${likedMeals.length > 0 ? `- Meals they enjoyed: ${likedMeals.slice(0, 15).join(', ')}\n` : ''}${onBreakMeals.length > 0 ? `- On a break right now (skip for a few weeks but can revisit later): ${onBreakMeals.slice(0, 15).join(', ')}\n` : ''}${dislikedMeals.length > 0 ? `- Genuinely disliked (avoid): ${dislikedMeals.slice(0, 15).join(', ')}\n` : ''}`
       : '';
 
     let prompt;

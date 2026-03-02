@@ -491,7 +491,7 @@ export default function Home() {
             <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#9AAC9D', fontWeight: '300' }}>{feedbackModal.meal}</p>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
-              {['Too complex', 'Not enough protein', 'Too heavy', "Didn't enjoy the taste", 'Wrong ingredients', 'Boring / repetitive', 'Too time-consuming'].map(tag => (
+              {['Too complex', 'Not enough protein', 'Too heavy', "Didn't enjoy the taste", 'Wrong ingredients', 'Boring / repetitive', 'Too time-consuming', 'Taking a break — revisit later'].map(tag => (
                 <button
                   key={tag}
                   onClick={() => setFeedbackTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])}

@@ -204,7 +204,7 @@ const editRecipe = (recipe) => {
             ← 
           </button>
         )}
-        <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'white', paddingLeft: view !== 'list' ? '60px' : '0', paddingRight: view !== 'list' ? '60px' : '0', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'white' }}>
           {view === 'list' ? 'Recipe Library' : view === 'add' ? 'Add Recipe' : selected?.name}
         </h1>
       </div>

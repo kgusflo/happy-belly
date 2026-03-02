@@ -285,10 +285,16 @@ const editRecipe = (recipe) => {
                 {selected.one_pan && <TagBadge label="One pan" active />}
                 {selected.prep_time && <TagBadge label={selected.prep_time} plain />}
               </div>
-              <button onClick={() => updateRecipe({ ...selected, favorite: !selected.favorite })}
-                style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>
-                {selected.favorite ? '⭐' : '☆'}
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button onClick={() => editRecipe(selected)}
+                  style={{ background: 'none', border: '1.5px solid #BDC2B4', borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontFamily: 'Montserrat, sans-serif', color: '#404F43', cursor: 'pointer' }}>
+                  Edit
+                </button>
+                <button onClick={() => updateRecipe({ ...selected, favorite: !selected.favorite })}
+                  style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>
+                  {selected.favorite ? '⭐' : '☆'}
+                </button>
+              </div>
             </div>
 
             {selected.protein_source && (
@@ -343,23 +349,7 @@ const editRecipe = (recipe) => {
                   fontFamily: 'Montserrat, sans-serif',
                   cursor: 'pointer',
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
-                    <button onClick={() => editRecipe(selected)}
-                      style={{
-                        backgroundColor: '#F9D7B5',
-                        border: '1.5px solid #BDC2B4',
-                        color: '#404F43',
-                        borderRadius: '50px',
-                        padding: '10px 24px',
-                        fontSize: '13px',
-                        fontWeight: '500',
-                        fontFamily: 'Montserrat, sans-serif',
-                        cursor: 'pointer',
-                      }}>
-                        ✏️ Edit Recipe
-                      </button>
-                    </div>
-
+                  
                 ✓ I made this! ({selected.use_count || 0}x)
               </button>
             </div>

@@ -348,7 +348,7 @@ export default function Home() {
               letterSpacing: '0.3px',
             }}
           >
-            {loadingMealPlan ? '⏳ Generating...' : '🗓️ Generate Meal Plan'}
+            {loadingMealPlan ? 'Generating...' : 'Generate Meal Plan'}
           </button>
         </div>
 

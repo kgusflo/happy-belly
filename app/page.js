@@ -95,6 +95,7 @@ export default function Home() {
       setMealPlan(updatedPlan);
       localStorage.setItem('mealPlan', updatedPlan);
       await supabase.from('meal_plans').update({ plan_text: updatedPlan }).eq('id', 1);
+      generateGroceryList(updatedPlan);
     } catch (error) {
       console.error('Swap error:', error);
     }

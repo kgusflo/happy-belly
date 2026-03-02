@@ -210,8 +210,8 @@ export default function ProfileModal({ isOpen, onClose, memberType: initialMembe
               padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px',
             }}>
               {messages.map((msg, i) => {
-                // Strip PROFILE_DATA line from display
-                const displayText = msg.content.split('PROFILE_DATA:')[0].trim();
+                // Strip PROFILE_DATA line and markdown bold markers from display
+                const displayText = msg.content.split('PROFILE_DATA:')[0].replace(/\*\*/g, '').trim();
                 if (!displayText) return null;
                 const isUser = msg.role === 'user';
                 return (

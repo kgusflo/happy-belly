@@ -36,7 +36,7 @@ COOKING PHILOSOPHY:
 
 export async function POST(request) {
   try {
-    const { type, mealPlan, weeklyContext } = await request.json();
+    const { type, mealPlan, weeklyContext, mealType, day, currentMeal } = await request.json();
 
     let prompt;
 

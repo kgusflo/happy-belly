@@ -41,7 +41,8 @@ const swapMealInText = (planText, day, mealType, newMeal) => {
     if (inDay && (trimmed.startsWith('**') || trimmed.startsWith('#')) && otherDays.some(d => trimmed.toLowerCase().includes(d.toLowerCase()))) {
       inDay = false; return line;
     }
-    if (inDay && !replaced && trimmed.toLowerCase().includes(mealType.toLowerCase() + ':')) {
+    const keyword = mealType.toLowerCase().includes('baby') ? 'baby' : mealType.toLowerCase().includes('snack') ? 'snack' : mealType.toLowerCase().split("'")[0];
+    if (inDay && !replaced && trimmed.toLowerCase().includes(keyword)) {
       replaced = true;
       const colonIdx = line.indexOf(':');
       return line.substring(0, colonIdx + 1) + ' ' + newMeal;
@@ -307,12 +308,13 @@ const getAllDaysMeals = (plan) => {
                         disabled={swapping !== null}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', opacity: swapping?.day === today && swapping?.mealType === meal.label ? 0.4 : 1, color: '#BDC2B4' }}
                       >
-                        {swapping?.day === today && swapping?.mealType === meal.label ? '⏳' : '↺'}
+                        {swapping?.day === today && swapping?.mealType === meal.label ? '⏳' : '🔀'}
                       </button>
                     </div>
                     <p style={{ margin: 0, fontSize: '14px', fontWeight: '300', color: '#404F43', lineHeight: '1.5' }}>{meal.value.replace(/\*\*/g, '')}</p>
                   </div>
                 ))}
+
               </div>
             ) : (
               <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '24px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>

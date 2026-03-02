@@ -67,6 +67,15 @@ Format each day like this:
 Keep meals simple and practical. Prioritize iron-rich foods, protein, and foods that work for the whole family.
 
 ${weeklyContext ? `This week's context from the user: ${weeklyContext}` : ''}`;
+    } else if (type === 'swap-meal') {
+      prompt = `${FAMILY_PROFILES}
+
+Current meal plan for context:
+${mealPlan}
+
+Generate a different ${mealType} option for ${day}. The current ${mealType} is: "${currentMeal}".
+Make it different but equally practical and nutritious. Return ONLY the new meal description in one line, nothing else.`;
+
 
     } else if (type === 'grocery-list') {
       prompt = `Based on this weekly meal plan:\n\n${mealPlan}\n\nCreate a grocery list organized by store section. Return ONLY a valid JSON array, no other text. Format:

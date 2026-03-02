@@ -8,6 +8,7 @@ export default function Home() {
   const [weeklyContext, setWeeklyContext] = useState('');
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [showFullPlan, setShowFullPlan] = useState(false);
+  const [swapping, setSwapping] = useState(null);
 
   useEffect(() => {
     const init = async () => {
@@ -25,6 +26,29 @@ export default function Home() {
     };
     init();
   }, []);
+
+const swapMealInText = (planText, day, mealType, newMeal) => {
+  const allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const otherDays = allDays.filter(d => d !== day);
+  const lines = planText.split('\n');
+  let inDay = false;
+  let replaced = false;
+  return lines.map(line => {
+    const trimmed = line.trim();
+    if (trimmed.toLowerCase().includes(day.toLowerCase()) && (trimmed.startsWith('**') || trimmed.startsWith('#'))) {
+      inDay = true; return line;
+    }
+    if (inDay && (trimmed.startsWith('**') || trimmed.startsWith('#')) && otherDays.some(d => trimmed.toLowerCase().includes(d.toLowerCase()))) {
+      inDay = false; return line;
+    }
+    if (inDay && !replaced && trimmed.toLowerCase().includes(mealType.toLowerCase() + ':')) {
+      replaced = true;
+      const colonIdx = line.indexOf(':');
+      return line.substring(0, colonIdx + 1) + ' ' + newMeal;
+    }
+    return line;
+  }).join('\n');
+};
 
   const generateGroceryList = async (plan) => {
     try {
@@ -51,6 +75,26 @@ export default function Home() {
       console.error('Grocery list error:', error);
     }
   };
+
+  const swapMeal = async (day, mealType, currentMeal) => {
+  setSwapping({ day, mealType });
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'swap-meal', mealPlan, mealType, day, currentMeal }),
+    });
+    const data = await res.json();
+    const newMeal = data.result.trim().replace(/\*\*/g, '');
+    const updatedPlan = swapMealInText(mealPlan, day, mealType, newMeal);
+    setMealPlan(updatedPlan);
+    localStorage.setItem('mealPlan', updatedPlan);
+    await supabase.from('meal_plans').update({ plan_text: updatedPlan }).eq('id', 1);
+  } catch (error) {
+    console.error('Swap error:', error);
+  }
+  setSwapping(null);
+};
 
   const generateMealPlan = async () => {
     setLoadingMealPlan(true);
@@ -253,9 +297,18 @@ const getAllDaysMeals = (plan) => {
                     padding: '16px',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '16px' }}>{meal.emoji}</span>
-                      <p style={{ margin: 0, fontSize: '11px', fontWeight: '600', color: '#E2A06F', letterSpacing: '0.8px' }}>{meal.label}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '16px' }}>{meal.emoji}</span>
+                        <p style={{ margin: 0, fontSize: '11px', fontWeight: '600', color: '#E2A06F', letterSpacing: '0.8px' }}>{meal.label}</p>
+                      </div>
+                      <button
+                        onClick={() => swapMeal(today, meal.label, meal.value)}
+                        disabled={swapping !== null}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', opacity: swapping?.day === today && swapping?.mealType === meal.label ? 0.4 : 1, color: '#BDC2B4' }}
+                      >
+                        {swapping?.day === today && swapping?.mealType === meal.label ? '⏳' : '↺'}
+                      </button>
                     </div>
                     <p style={{ margin: 0, fontSize: '14px', fontWeight: '300', color: '#404F43', lineHeight: '1.5' }}>{meal.value.replace(/\*\*/g, '')}</p>
                   </div>

@@ -165,9 +165,9 @@ useEffect(() => {
                   <option value="adult">Adult</option>
                 </select>
                 {editing.role === 'baby' && (
-                  <div>
+                  <div style={{ width: '100%', boxSizing: 'border-box' }}>
                     <label style={{ fontSize: '12px', color: '#9AAC9D', fontWeight: '300', marginBottom: '4px', display: 'block' }}>Date of Birth</label>
-                    <input type="date" style={inputStyle} value={editing.date_of_birth || ''}
+                    <input type="date" style={{ ...inputStyle, maxWidth: '100%' }} value={editing.date_of_birth || ''}
                       onChange={e => setEditing({ ...editing, date_of_birth: e.target.value })} />
                   </div>
                 )}

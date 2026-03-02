@@ -19,6 +19,8 @@ export default function Recipes() {
   const [analyzingNutrition, setAnalyzingNutrition] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [extractingFromPhoto, setExtractingFromPhoto] = useState(false);
+  const [photoPreviewNames, setPhotoPreviewNames] = useState([]);
 
   useEffect(() => {
     fetchRecipes();
@@ -121,6 +123,42 @@ const editRecipe = (recipe) => {
       alert('Could not fetch recipe from that URL. Try adding it manually.');
     }
     setFetchingUrl(false);
+  };
+
+  const extractFromPhotos = async (files) => {
+    if (!files || files.length === 0) return;
+    setExtractingFromPhoto(true);
+    setPhotoPreviewNames(Array.from(files).map(f => f.name));
+    try {
+      // Convert all selected files to base64
+      const images = await Promise.all(Array.from(files).map(file =>
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve({
+            data: reader.result.split(',')[1],
+            mediaType: file.type || 'image/jpeg',
+          });
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        })
+      ));
+      const res = await fetch('/api/extract-recipe-from-photos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ images }),
+      });
+      const data = await res.json();
+      if (data.recipe) {
+        setForm(prev => ({ ...prev, ...data.recipe }));
+      } else {
+        alert('Could not read the recipe from those photos. Try a clearer photo or add manually.');
+      }
+    } catch (e) {
+      console.error('Photo extract error:', e);
+      alert('Something went wrong reading the photos. Try again.');
+    }
+    setExtractingFromPhoto(false);
+    setPhotoPreviewNames([]);
   };
 
   const analyzeNutrition = async () => {
@@ -408,7 +446,7 @@ const editRecipe = (recipe) => {
           <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
 
             <p style={{ fontSize: '12px', fontWeight: '600', color: '#9AAC9D', letterSpacing: '0.5px', marginBottom: '8px' }}>IMPORT FROM URL</p>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
               <input
                 style={{ flex: 1, border: '1.5px solid #BDC2B4', borderRadius: '12px', padding: '10px 14px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', fontWeight: '300', outline: 'none' }}
                 placeholder="Paste recipe URL..."
@@ -420,6 +458,31 @@ const editRecipe = (recipe) => {
                 {fetchingUrl ? '...' : 'Import'}
               </button>
             </div>
+
+            {/* Photo Import */}
+            <p style={{ fontSize: '12px', fontWeight: '600', color: '#9AAC9D', letterSpacing: '0.5px', marginBottom: '8px' }}>IMPORT FROM PHOTO</p>
+            <label style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              border: '1.5px dashed #BDC2B4', borderRadius: '12px', padding: '12px 16px',
+              fontSize: '13px', fontFamily: 'Montserrat, sans-serif', color: '#5AA0B4',
+              fontWeight: '400', cursor: extractingFromPhoto ? 'default' : 'pointer',
+              marginBottom: '8px', opacity: extractingFromPhoto ? 0.6 : 1,
+            }}>
+              {extractingFromPhoto
+                ? `⏳ Reading ${photoPreviewNames.length} photo${photoPreviewNames.length !== 1 ? 's' : ''}...`
+                : '📸 Select photo(s) of a recipe'}
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                style={{ display: 'none' }}
+                disabled={extractingFromPhoto}
+                onChange={e => e.target.files.length > 0 && extractFromPhotos(e.target.files)}
+              />
+            </label>
+            <p style={{ fontSize: '11px', color: '#BDC2B4', fontWeight: '300', margin: '0 0 16px 2px' }}>
+              Select multiple photos if your recipe spans several screenshots
+            </p>
 
             <div style={{ borderTop: '1px solid #f3f4f6', marginBottom: '20px' }} />
 

@@ -86,6 +86,20 @@ export async function POST(request) {
       .order('created_at');
     const FAMILY_PROFILES = buildFamilyProfiles(members);
 
+    // Fetch meal feedback to personalise AI suggestions
+    const { data: feedbackData } = await supabase
+      .from('meal_feedback')
+      .select('meal_name, rating, feedback_notes')
+      .order('created_at', { ascending: false })
+      .limit(100);
+    const likedMeals = (feedbackData || []).filter(f => f.rating === 'liked').map(f => f.meal_name);
+    const dislikedMeals = (feedbackData || []).filter(f => f.rating === 'disliked').map(f =>
+      f.feedback_notes ? `${f.meal_name} (${f.feedback_notes})` : f.meal_name
+    );
+    const feedbackSection = (likedMeals.length > 0 || dislikedMeals.length > 0)
+      ? `\nMEAL PREFERENCES FROM PAST FEEDBACK:\n${likedMeals.length > 0 ? `- Meals they enjoyed: ${likedMeals.slice(0, 15).join(', ')}\n` : ''}${dislikedMeals.length > 0 ? `- Meals to avoid / disliked: ${dislikedMeals.slice(0, 15).join(', ')}\n` : ''}`
+      : '';
+
     let prompt;
 
     if (type === 'meal-plan') {
@@ -100,7 +114,7 @@ export async function POST(request) {
           ).join('\n')}`
         : '';
 
-      prompt = `${FAMILY_PROFILES}${recipeList}
+      prompt = `${FAMILY_PROFILES}${feedbackSection}${recipeList}
 
 Create a 7-day meal plan for this family. Prioritize using recipes from her saved library when possible. For each day include breakfast, lunch, dinner, and 1-2 snacks.
 
@@ -117,7 +131,7 @@ Keep meals simple and practical. Prioritize iron-rich foods, protein, and foods 
 ${weeklyContext ? `This week's context from the user: ${weeklyContext}` : ''}`;
 
     } else if (type === 'swap-meal') {
-      prompt = `${FAMILY_PROFILES}
+      prompt = `${FAMILY_PROFILES}${feedbackSection}
 
 Current meal plan for context:
 ${mealPlan}

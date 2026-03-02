@@ -1,6 +1,9 @@
 'use client';
 import { supabase } from '../lib/supabase';
 import Shuffle from 'lucide-react/dist/esm/icons/shuffle';
+import ThumbsUp from 'lucide-react/dist/esm/icons/thumbs-up';
+import ThumbsDown from 'lucide-react/dist/esm/icons/thumbs-down';
+import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
 import { useState, useEffect, useRef } from 'react';
 
 export default function Home() {
@@ -15,25 +18,43 @@ export default function Home() {
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [selectedDayIndex, setSelectedDayIndex] = useState(todayIndex);
   const [swapping, setSwapping] = useState(null);
+  const [ratedMeals, setRatedMeals] = useState({});
+  const [feedbackModal, setFeedbackModal] = useState(null);
+  const [feedbackTags, setFeedbackTags] = useState([]);
+  const [feedbackNote, setFeedbackNote] = useState('');
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const touchStartX = useRef(null);
   const touchStartY = useRef(null);
+  const pullStartY = useRef(null);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    const init = async () => {
-      const { data: recipes } = await supabase.from('recipes').select('id, name');
-      if (recipes) setSavedRecipes(recipes);
+  const loadData = async () => {
+    const { data: recipes } = await supabase.from('recipes').select('id, name');
+    if (recipes) setSavedRecipes(recipes);
 
-      const { data: planData } = await supabase.from('meal_plans').select('plan_text').eq('id', 1).single();
-      if (planData?.plan_text) {
-        setMealPlan(planData.plan_text);
-        localStorage.setItem('mealPlan', planData.plan_text);
-      } else {
-        const saved = localStorage.getItem('mealPlan');
-        if (saved) setMealPlan(saved);
-      }
-    };
-    init();
-  }, []);
+    const { data: planData } = await supabase.from('meal_plans').select('plan_text').eq('id', 1).single();
+    if (planData?.plan_text) {
+      setMealPlan(planData.plan_text);
+      localStorage.setItem('mealPlan', planData.plan_text);
+    } else {
+      const saved = localStorage.getItem('mealPlan');
+      if (saved) setMealPlan(saved);
+    }
+
+    const { data: feedback } = await supabase
+      .from('meal_feedback')
+      .select('meal_name, rating')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (feedback) {
+      const rated = {};
+      feedback.forEach(f => { rated[f.meal_name] = f.rating; });
+      setRatedMeals(rated);
+    }
+  };
+
+  useEffect(() => { loadData(); }, []);
 
   const swapMealInText = (planText, day, mealType, newMeal) => {
     const otherDays = allDays.filter(d => d !== day);
@@ -170,6 +191,33 @@ export default function Home() {
     return clean;
   };
 
+  const likeMeal = async (day, mealType, mealValue) => {
+    const clean = mealValue.replace(/\*\*/g, '').trim();
+    setRatedMeals(prev => ({ ...prev, [clean]: prev[clean] === 'liked' ? null : 'liked' }));
+    await supabase.from('meal_feedback').insert({ meal_name: clean, meal_type: mealType, rating: 'liked' });
+  };
+
+  const openDislikeModal = (day, mealType, mealValue) => {
+    setFeedbackModal({ day, mealType, meal: mealValue.replace(/\*\*/g, '').trim() });
+    setFeedbackTags([]);
+    setFeedbackNote('');
+  };
+
+  const submitDislike = async () => {
+    if (!feedbackModal) return;
+    setSubmittingFeedback(true);
+    const notes = [...feedbackTags, feedbackNote.trim() ? feedbackNote.trim() : null].filter(Boolean).join('; ');
+    setRatedMeals(prev => ({ ...prev, [feedbackModal.meal]: 'disliked' }));
+    await supabase.from('meal_feedback').insert({
+      meal_name: feedbackModal.meal,
+      meal_type: feedbackModal.mealType,
+      rating: 'disliked',
+      feedback_notes: notes || null,
+    });
+    setFeedbackModal(null);
+    setSubmittingFeedback(false);
+  };
+
   const handleTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
@@ -191,13 +239,60 @@ export default function Home() {
     touchStartY.current = null;
   };
 
+  const handlePullStart = (e) => {
+    if (window.scrollY === 0) {
+      pullStartY.current = e.touches[0].clientY;
+    }
+  };
+
+  const handlePullMove = (e) => {
+    if (pullStartY.current === null) return;
+    const dist = e.touches[0].clientY - pullStartY.current;
+    if (dist > 0) {
+      setPullDistance(Math.min(dist * 0.4, 80));
+    }
+  };
+
+  const handlePullEnd = async () => {
+    if (pullDistance > 55) {
+      setRefreshing(true);
+      setPullDistance(0);
+      pullStartY.current = null;
+      await loadData();
+      setRefreshing(false);
+    } else {
+      setPullDistance(0);
+      pullStartY.current = null;
+    }
+  };
+
   const allDaysMeals = getAllDaysMeals(mealPlan);
   const selectedDay = allDays[selectedDayIndex];
   const isToday = selectedDay === todayName;
   const currentDayData = allDaysMeals.find(d => d.day === selectedDay);
 
   return (
-    <main style={{ backgroundColor: '#F9D7B5', minHeight: '100vh' }}>
+    <main
+      style={{ backgroundColor: '#F9D7B5', minHeight: '100vh' }}
+      onTouchStart={handlePullStart}
+      onTouchMove={handlePullMove}
+      onTouchEnd={handlePullEnd}
+    >
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+
+      {/* Pull-to-refresh indicator */}
+      {(pullDistance > 0 || refreshing) && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: `${refreshing ? 40 : pullDistance}px`, overflow: 'hidden', transition: refreshing ? 'none' : 'height 0.1s' }}>
+          <RefreshCw
+            size={20}
+            color="#5AA0B4"
+            style={refreshing
+              ? { animation: 'spin 0.8s linear infinite' }
+              : { transform: `rotate(${pullDistance * 4}deg)` }
+            }
+          />
+        </div>
+      )}
 
       {/* Slim Header */}
       <div style={{ backgroundColor: '#5AA0B4', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottomLeftRadius: '20px', borderBottomRightRadius: '20px' }}>
@@ -349,22 +444,25 @@ export default function Home() {
                           <span style={{ fontSize: '16px' }}>{meal.emoji}</span>
                           <p style={{ margin: 0, fontSize: '11px', fontWeight: '600', color: '#E2A06F', letterSpacing: '0.8px' }}>{meal.label}</p>
                         </div>
-                        <button
-                          onClick={() => swapMeal(selectedDay, meal.label, meal.value)}
-                          disabled={swapping !== null}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: swapping !== null ? 'default' : 'pointer',
-                            opacity: swapping?.day === selectedDay && swapping?.mealType === meal.label ? 0.4 : 1,
-                            color: '#BDC2B4',
-                            display: 'flex',
-                            alignItems: 'center',
-                            padding: '4px',
-                          }}
-                        >
-                          {swapping?.day === selectedDay && swapping?.mealType === meal.label ? '⏳' : <Shuffle size={14} color="#BDC2B4" />}
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                          <button
+                            onClick={() => likeMeal(selectedDay, meal.label, meal.value)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', opacity: ratedMeals[meal.value.replace(/\*\*/g, '').trim()] === 'liked' ? 1 : 0.3, transition: 'opacity 0.15s' }}
+                            title="I liked this"
+                          ><ThumbsUp size={14} color="#9AAC9D" /></button>
+                          <button
+                            onClick={() => openDislikeModal(selectedDay, meal.label, meal.value)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', opacity: ratedMeals[meal.value.replace(/\*\*/g, '').trim()] === 'disliked' ? 1 : 0.3, transition: 'opacity 0.15s' }}
+                            title="I didn't like this"
+                          ><ThumbsDown size={14} color="#9AAC9D" /></button>
+                          <button
+                            onClick={() => swapMeal(selectedDay, meal.label, meal.value)}
+                            disabled={swapping !== null}
+                            style={{ background: 'none', border: 'none', cursor: swapping !== null ? 'default' : 'pointer', opacity: swapping?.day === selectedDay && swapping?.mealType === meal.label ? 0.4 : 1, color: '#BDC2B4', display: 'flex', alignItems: 'center', padding: '4px' }}
+                          >
+                            {swapping?.day === selectedDay && swapping?.mealType === meal.label ? '⏳' : <Shuffle size={14} color="#BDC2B4" />}
+                          </button>
+                        </div>
                       </div>
                       <p style={{ margin: 0, fontSize: '14px', fontWeight: '300', color: '#404F43', lineHeight: '1.5' }}>{linkifyMeal(meal.value)}</p>
                     </div>
@@ -381,6 +479,57 @@ export default function Home() {
         )}
 
       </div>
+
+      {/* Dislike Feedback Modal */}
+      {feedbackModal && (
+        <div
+          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 50, display: 'flex', alignItems: 'flex-end' }}
+          onClick={e => { if (e.target === e.currentTarget) setFeedbackModal(null); }}
+        >
+          <div style={{ backgroundColor: 'white', borderRadius: '24px 24px 0 0', padding: '24px', width: '100%', maxWidth: '680px', margin: '0 auto', boxSizing: 'border-box' }}>
+            <p style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: '600', color: '#404F43' }}>What didn't you like? 👎</p>
+            <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#9AAC9D', fontWeight: '300' }}>{feedbackModal.meal}</p>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
+              {['Too complex', 'Not enough protein', 'Too heavy', "Didn't enjoy the taste", 'Wrong ingredients', 'Boring / repetitive', 'Too time-consuming'].map(tag => (
+                <button
+                  key={tag}
+                  onClick={() => setFeedbackTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])}
+                  style={{
+                    padding: '7px 14px', borderRadius: '20px', fontSize: '12px',
+                    fontFamily: 'Montserrat, sans-serif', cursor: 'pointer', fontWeight: '400',
+                    border: '1.5px solid', transition: 'all 0.15s',
+                    borderColor: feedbackTags.includes(tag) ? '#D5824A' : '#BDC2B4',
+                    backgroundColor: feedbackTags.includes(tag) ? '#F9D7B5' : 'white',
+                    color: feedbackTags.includes(tag) ? '#D5824A' : '#9AAC9D',
+                  }}
+                >{tag}</button>
+              ))}
+            </div>
+
+            <textarea
+              placeholder="Anything else? (optional)"
+              rows={2}
+              value={feedbackNote}
+              onChange={e => setFeedbackNote(e.target.value)}
+              style={{ width: '100%', border: '1.5px solid #BDC2B4', borderRadius: '12px', padding: '10px 14px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', fontWeight: '300', outline: 'none', resize: 'none', boxSizing: 'border-box', marginBottom: '16px', color: '#404F43' }}
+            />
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                onClick={() => setFeedbackModal(null)}
+                style={{ flex: 1, border: '1.5px solid #BDC2B4', borderRadius: '16px', padding: '12px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', background: 'white', color: '#9AAC9D', cursor: 'pointer', fontWeight: '400' }}
+              >Cancel</button>
+              <button
+                onClick={submitDislike}
+                disabled={submittingFeedback}
+                style={{ flex: 2, backgroundColor: '#D5824A', color: 'white', border: 'none', borderRadius: '16px', padding: '12px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', fontWeight: '500', cursor: 'pointer', opacity: submittingFeedback ? 0.6 : 1 }}
+              >{submittingFeedback ? 'Saving...' : 'Save Feedback'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </main>
   );
 }

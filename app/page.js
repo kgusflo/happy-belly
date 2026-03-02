@@ -5,6 +5,7 @@ import ThumbsUp from 'lucide-react/dist/esm/icons/thumbs-up';
 import ThumbsDown from 'lucide-react/dist/esm/icons/thumbs-down';
 import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
 import { useState, useEffect, useRef } from 'react';
+import ProfileModal from './components/ProfileModal';
 
 export default function Home() {
   const allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -28,6 +29,8 @@ export default function Home() {
   const pullStartY = useRef(null);
   const [pullDistance, setPullDistance] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const hasCheckedProfiles = useRef(false);
 
   const loadData = async () => {
     const { data: recipes } = await supabase.from('recipes').select('id, name');
@@ -51,6 +54,15 @@ export default function Home() {
       const rated = {};
       feedback.forEach(f => { rated[f.meal_name] = f.rating; });
       setRatedMeals(rated);
+    }
+
+    // First-time user check: auto-open profile setup if no family members exist
+    if (!hasCheckedProfiles.current) {
+      hasCheckedProfiles.current = true;
+      const { data: familyMembers } = await supabase.from('family_members').select('id').limit(1);
+      if (!familyMembers || familyMembers.length === 0) {
+        setShowProfileSetup(true);
+      }
     }
   };
 
@@ -481,6 +493,15 @@ export default function Home() {
       </div>
 
       {/* Dislike Feedback Modal */}
+      {/* First-time profile setup */}
+      <ProfileModal
+        isOpen={showProfileSetup}
+        onClose={() => setShowProfileSetup(false)}
+        memberType={null}
+        existingProfile={null}
+        onSaved={() => setShowProfileSetup(false)}
+      />
+
       {feedbackModal && (
         <div
           style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 200, display: 'flex', alignItems: 'flex-end' }}

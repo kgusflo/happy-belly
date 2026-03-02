@@ -16,6 +16,7 @@ export default function Home() {
   const [selectedDayIndex, setSelectedDayIndex] = useState(todayIndex);
   const [swapping, setSwapping] = useState(null);
   const touchStartX = useRef(null);
+  const touchStartY = useRef(null);
 
   useEffect(() => {
     const init = async () => {
@@ -150,19 +151,23 @@ export default function Home() {
 
   const handleTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
   };
 
   const handleTouchEnd = (e) => {
     if (touchStartX.current === null) return;
-    const diff = touchStartX.current - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 50) {
-      if (diff > 0 && selectedDayIndex < allDays.length - 1) {
+    const diffX = touchStartX.current - e.changedTouches[0].clientX;
+    const diffY = touchStartY.current - e.changedTouches[0].clientY;
+    // Only trigger if horizontal swipe is dominant (not a scroll)
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 40) {
+      if (diffX > 0 && selectedDayIndex < allDays.length - 1) {
         setSelectedDayIndex(prev => prev + 1);
-      } else if (diff < 0 && selectedDayIndex > 0) {
+      } else if (diffX < 0 && selectedDayIndex > 0) {
         setSelectedDayIndex(prev => prev - 1);
       }
     }
     touchStartX.current = null;
+    touchStartY.current = null;
   };
 
   const allDaysMeals = getAllDaysMeals(mealPlan);

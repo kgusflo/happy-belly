@@ -92,7 +92,7 @@ export default function Profiles() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: '500', color: '#404F43', fontFamily: 'Montserrat, sans-serif' }}>
-                    {memberIcon(member.role)} {member.name}
+                    {member.name}
                   </p>
                   {babyStage && (
                     <div style={{ marginTop: '4px' }}>

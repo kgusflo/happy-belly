@@ -104,54 +104,60 @@ export default function Home() {
   };
 
   const getTodaysMeals = (plan) => {
-    if (!plan) return null;
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const today = days[new Date().getDay()];
+  if (!plan) return null;
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const today = days[new Date().getDay()];
+  const otherDays = days.filter(d => d !== today);
+  const lines = plan.split('\n');
+  let inToday = false;
+  let meals = { breakfast: '', lunch: '', dinner: '', snacks: '', baby: '' };
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line.toLowerCase().includes(today.toLowerCase()) && (line.startsWith('**') || line.startsWith('#'))) {
+      inToday = true; continue;
+    }
+    if (inToday && (line.startsWith('**') || line.startsWith('#')) && otherDays.some(d => line.toLowerCase().includes(d.toLowerCase()))) break;
+    if (inToday) {
+      const lower = line.toLowerCase();
+      if (lower.includes('breakfast:')) meals.breakfast = line.split(':').slice(1).join(':').trim().replace(/\*\*/g, '');
+      if (lower.includes('lunch:')) meals.lunch = line.split(':').slice(1).join(':').trim().replace(/\*\*/g, '');
+      if (lower.includes('dinner:')) meals.dinner = line.split(':').slice(1).join(':').trim().replace(/\*\*/g, '');
+      if (lower.includes('snack')) meals.snacks = line.split(':').slice(1).join(':').trim().replace(/\*\*/g, '');
+      if (lower.includes('baby')) meals.baby = line.split(':').slice(1).join(':').trim().replace(/\*\*/g, '');
+    }
+  }
+  return meals.breakfast || meals.lunch || meals.dinner ? meals : null;
+};
+
+const getAllDaysMeals = (plan) => {
+  if (!plan) return [];
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const result = [];
+  for (const day of days) {
+    const otherDays = days.filter(d => d !== day);
     const lines = plan.split('\n');
-    let inToday = false;
+    let inDay = false;
     let meals = { breakfast: '', lunch: '', dinner: '', snacks: '', baby: '' };
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      if (line.includes(`**${today}**`)) { inToday = true; continue; }
-      if (inToday && line.startsWith('**') && !line.includes(today)) break;
-      if (inToday) {
+      const line = lines[i].trim();
+      if (line.toLowerCase().includes(day.toLowerCase()) && (line.startsWith('**') || line.startsWith('#'))) {
+        inDay = true; continue;
+      }
+      if (inDay && (line.startsWith('**') || line.startsWith('#')) && otherDays.some(d => line.toLowerCase().includes(d.toLowerCase()))) break;
+      if (inDay) {
         const lower = line.toLowerCase();
-        if (lower.includes('breakfast:')) meals.breakfast = line.split(':').slice(1).join(':').trim();
-        if (lower.includes('lunch:')) meals.lunch = line.split(':').slice(1).join(':').trim();
-        if (lower.includes('dinner:')) meals.dinner = line.split(':').slice(1).join(':').trim();
-        if (lower.includes('snack')) meals.snacks = line.split(':').slice(1).join(':').trim();
-        if (lower.includes('baby')) meals.baby = line.split(':').slice(1).join(':').trim();
+        if (lower.includes('breakfast:')) meals.breakfast = line.split(':').slice(1).join(':').trim().replace(/\*\*/g, '');
+        if (lower.includes('lunch:')) meals.lunch = line.split(':').slice(1).join(':').trim().replace(/\*\*/g, '');
+        if (lower.includes('dinner:')) meals.dinner = line.split(':').slice(1).join(':').trim().replace(/\*\*/g, '');
+        if (lower.includes('snack')) meals.snacks = line.split(':').slice(1).join(':').trim().replace(/\*\*/g, '');
+        if (lower.includes('baby')) meals.baby = line.split(':').slice(1).join(':').trim().replace(/\*\*/g, '');
       }
     }
-    return meals.breakfast || meals.lunch || meals.dinner ? meals : null;
-  };
-const getAllDaysMeals = (plan) => {
-    if (!plan) return [];
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    const result = [];
-    for (const day of days) {
-      const lines = plan.split('\n');
-      let inDay = false;
-      let meals = { breakfast: '', lunch: '', dinner: '', snacks: '', baby: '' };
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        if (line.includes(`**${day}**`)) { inDay = true; continue; }
-        if (inDay && line.startsWith('**') && !line.includes(day)) break;
-        if (inDay) {
-          const lower = line.toLowerCase();
-          if (lower.includes('breakfast:')) meals.breakfast = line.split(':').slice(1).join(':').trim().replace(/\*\*/g, '');
-          if (lower.includes('lunch:')) meals.lunch = line.split(':').slice(1).join(':').trim().replace(/\*\*/g, '');
-          if (lower.includes('dinner:')) meals.dinner = line.split(':').slice(1).join(':').trim().replace(/\*\*/g, '');
-          if (lower.includes('snack')) meals.snacks = line.split(':').slice(1).join(':').trim().replace(/\*\*/g, '');
-          if (lower.includes('baby')) meals.baby = line.split(':').slice(1).join(':').trim().replace(/\*\*/g, '');
-        }
-      }
-      if (meals.breakfast || meals.lunch || meals.dinner) {
-        result.push({ day, meals });
-      }
-    }
-    return result;
-  };
+    if (meals.breakfast || meals.lunch || meals.dinner) result.push({ day, meals });
+  }
+  return result;
+};
+
 
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const today = days[new Date().getDay()];

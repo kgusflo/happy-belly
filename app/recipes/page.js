@@ -37,6 +37,26 @@ export default function Recipes() {
     setLoading(false);
   };
 
+const editRecipe = (recipe) => {
+  setForm({
+    name: recipe.name || '',
+    protein_source: recipe.protein_source || '',
+    ingredients: recipe.ingredients || '',
+    instructions: recipe.instructions || '',
+    notes: recipe.notes || '',
+    prep_time: recipe.prep_time || '',
+    batch_friendly: recipe.batch_friendly || false,
+    baby_adaptable: recipe.baby_adaptable || false,
+    one_pan: recipe.one_pan || false,
+    favorite: recipe.favorite || false,
+    nutritional_profile: recipe.nutritional_profile || '',
+    url: recipe.url || '',
+    image_url: recipe.image_url || '',
+    id: recipe.id,
+  });
+  setView('add');
+};
+
   const saveRecipe = async () => {
     setSaving(true);
     const cleaned = {
@@ -50,7 +70,11 @@ export default function Recipes() {
       url: form.url || null,
       image_url: form.image_url || null,
     };
-    await supabase.from('recipes').insert(cleaned);
+    if (form.id) {
+  await supabase.from('recipes').update(cleaned).eq('id', form.id);
+} else {
+  await supabase.from('recipes').insert(cleaned);
+}
     await fetchRecipes();
     setView('list');
     setForm({
@@ -319,6 +343,23 @@ export default function Recipes() {
                   fontFamily: 'Montserrat, sans-serif',
                   cursor: 'pointer',
                 }}>
+                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+                    <button onClick={() => editRecipe(selected)}
+                      style={{
+                        backgroundColor: '#F9D7B5',
+                        border: '1.5px solid #BDC2B4',
+                        color: '#404F43',
+                        borderRadius: '50px',
+                        padding: '10px 24px',
+                        fontSize: '13px',
+                        fontWeight: '500',
+                        fontFamily: 'Montserrat, sans-serif',
+                        cursor: 'pointer',
+                      }}>
+                        ✏️ Edit Recipe
+                      </button>
+                    </div>
+
                 ✓ I made this! ({selected.use_count || 0}x)
               </button>
             </div>

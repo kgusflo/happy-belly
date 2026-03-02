@@ -1,5 +1,6 @@
 'use client';
 import { supabase } from '../lib/supabase';
+import { Shuffle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export default function Home() {
@@ -308,7 +309,7 @@ const getAllDaysMeals = (plan) => {
                         disabled={swapping !== null}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', opacity: swapping?.day === today && swapping?.mealType === meal.label ? 0.4 : 1, color: '#BDC2B4' }}
                       >
-                        {swapping?.day === today && swapping?.mealType === meal.label ? '⏳' : '🔀'}
+                        {swapping?.day === today && swapping?.mealType === meal.label ? '⏳' : <Shuffle size={14} color="#BDC2B4" />}
                       </button>
                     </div>
                     <p style={{ margin: 0, fontSize: '14px', fontWeight: '300', color: '#404F43', lineHeight: '1.5' }}>{meal.value.replace(/\*\*/g, '')}</p>

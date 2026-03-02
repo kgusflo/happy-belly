@@ -18,6 +18,7 @@ export default function Recipes() {
   const [fetchingUrl, setFetchingUrl] = useState(false);
   const [analyzingNutrition, setAnalyzingNutrition] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   useEffect(() => {
     fetchRecipes();
@@ -137,6 +138,26 @@ const editRecipe = (recipe) => {
       alert('Could not analyze nutrition.');
     }
     setAnalyzingNutrition(false);
+  };
+
+  const uploadPhoto = async (file) => {
+    if (!file) return;
+    setUploadingPhoto(true);
+    try {
+      const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+      const { error } = await supabase.storage
+        .from('recipe-images')
+        .upload(fileName, file, { upsert: true });
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage
+        .from('recipe-images')
+        .getPublicUrl(fileName);
+      setForm(prev => ({ ...prev, image_url: publicUrl }));
+    } catch (e) {
+      console.error('Photo upload error:', e);
+      alert('Could not upload photo. Make sure you have a "recipe-images" storage bucket in Supabase.');
+    }
+    setUploadingPhoto(false);
   };
 
   const proteinSources = ['All', ...new Set(recipes.map(r => r.protein_source).filter(Boolean))];
@@ -278,6 +299,17 @@ const editRecipe = (recipe) => {
         {/* DETAIL VIEW */}
         {view === 'detail' && selected && (
           <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+
+            {selected.image_url && (
+              <div style={{ margin: '-20px -20px 20px -20px' }}>
+                <img
+                  src={selected.image_url}
+                  alt={selected.name}
+                  style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '20px 20px 0 0' }}
+                />
+              </div>
+            )}
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                 {selected.batch_friendly && <TagBadge label="Batch friendly" active />}
@@ -432,6 +464,37 @@ const editRecipe = (recipe) => {
                     {tag.label}
                   </label>
                 ))}
+              </div>
+
+              {/* Photo Upload */}
+              <div>
+                <p style={{ fontSize: '12px', fontWeight: '600', color: '#9AAC9D', letterSpacing: '0.5px', marginBottom: '8px' }}>PHOTO</p>
+                {form.image_url && (
+                  <div style={{ position: 'relative', marginBottom: '8px' }}>
+                    <img src={form.image_url} alt="Recipe" style={{ width: '100%', height: '160px', objectFit: 'cover', borderRadius: '12px' }} />
+                    <button
+                      onClick={() => setForm(prev => ({ ...prev, image_url: '' }))}
+                      style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', color: 'white', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      ✕
+                    </button>
+                  </div>
+                )}
+                <label style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  backgroundColor: '#F9D7B5', border: '1.5px dashed #BDC2B4', borderRadius: '12px',
+                  padding: '12px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif',
+                  color: '#D5824A', fontWeight: '400', cursor: 'pointer',
+                  opacity: uploadingPhoto ? 0.6 : 1,
+                }}>
+                  {uploadingPhoto ? '⏳ Uploading...' : '📷 ' + (form.image_url ? 'Change Photo' : 'Add Photo')}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    disabled={uploadingPhoto}
+                    onChange={e => e.target.files[0] && uploadPhoto(e.target.files[0])}
+                  />
+                </label>
               </div>
 
               <button onClick={analyzeNutrition} disabled={analyzingNutrition || !form.ingredients}

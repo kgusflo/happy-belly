@@ -7,7 +7,8 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
-const FAMILY_PROFILES = `
+// Fallback profiles if no family members are saved yet
+const FAMILY_PROFILES_FALLBACK = `
 Family Nutrition Profiles:
 
 MOM:
@@ -34,9 +35,56 @@ COOKING PHILOSOPHY:
 - Same ingredients for whole family, just prepared differently for baby
 `;
 
+const buildFamilyProfiles = (members) => {
+  if (!members || members.length === 0) return FAMILY_PROFILES_FALLBACK;
+
+  const lines = ['Family Nutrition Profiles:\n'];
+
+  for (const m of members) {
+    lines.push(`${(m.name || 'Member').toUpperCase()}:`);
+
+    if (m.date_of_birth) {
+      const months = Math.floor((new Date() - new Date(m.date_of_birth)) / (1000 * 60 * 60 * 24 * 30.44));
+      if (months < 36) {
+        lines.push(`- Age: ${months} months old`);
+        if (months < 5) lines.push('- Diet: Breast milk or formula only — not ready for solids');
+        else if (months < 8) lines.push('- Solids stage: Starting solids — smooth purees, single ingredients, prioritize iron-rich foods');
+        else if (months < 10) lines.push('- Solids stage: Soft mashed foods, soft finger foods');
+        else if (months < 12) lines.push('- Solids stage: Soft chopped table food, variety of textures');
+        else lines.push('- Solids stage: Table foods, wide variety of textures');
+      } else {
+        const years = Math.floor(months / 12);
+        lines.push(`- Age: ${years} year${years !== 1 ? 's' : ''} old`);
+      }
+    }
+
+    if (m.height || m.weight) lines.push(`- Height/Weight: ${[m.height, m.weight].filter(Boolean).join(', ')}`);
+    if (m.activity_level) lines.push(`- Activity: ${m.activity_level}`);
+    if (m.goals) lines.push(`- Goals: ${m.goals}`);
+    if (m.supplements) lines.push(`- Supplements: ${m.supplements}`);
+    if (m.notes) lines.push(`- Notes: ${m.notes}`);
+
+    lines.push('');
+  }
+
+  lines.push('COOKING PHILOSOPHY:');
+  lines.push('- Simple, low-effort meals');
+  lines.push('- Batch cooking friendly');
+  lines.push('- Same ingredients for whole family, just prepared differently for baby');
+
+  return lines.join('\n');
+};
+
 export async function POST(request) {
   try {
     const { type, mealPlan, weeklyContext, mealType, day, currentMeal } = await request.json();
+
+    // Fetch family members dynamically — used across all prompt types
+    const { data: members } = await supabase
+      .from('family_members')
+      .select('*')
+      .order('created_at');
+    const FAMILY_PROFILES = buildFamilyProfiles(members);
 
     let prompt;
 
@@ -67,6 +115,7 @@ Format each day like this:
 Keep meals simple and practical. Prioritize iron-rich foods, protein, and foods that work for the whole family.
 
 ${weeklyContext ? `This week's context from the user: ${weeklyContext}` : ''}`;
+
     } else if (type === 'swap-meal') {
       prompt = `${FAMILY_PROFILES}
 
@@ -76,9 +125,24 @@ ${mealPlan}
 Generate a different ${mealType} option for ${day}. The current ${mealType} is: "${currentMeal}".
 Make it different but equally practical and nutritious. Return ONLY the new meal description in one line, nothing else.`;
 
-
     } else if (type === 'grocery-list') {
-      prompt = `Based on this weekly meal plan:\n\n${mealPlan}\n\nCreate a grocery list organized by store section. Return ONLY a valid JSON array, no other text. Format:
+      // Fetch saved recipes with their ingredients so the grocery list is exact
+      const { data: allRecipes } = await supabase
+        .from('recipes')
+        .select('name, ingredients');
+
+      // Only include recipes that are actually referenced in this week's meal plan
+      const usedRecipes = (allRecipes || []).filter(r =>
+        r.ingredients && mealPlan.toLowerCase().includes(r.name.toLowerCase())
+      );
+
+      const recipeIngredients = usedRecipes.length > 0
+        ? `\n\nINGREDIENTS FROM SAVED RECIPES USED THIS WEEK:\n${usedRecipes.map(r =>
+            `${r.name}:\n${r.ingredients}`
+          ).join('\n\n')}`
+        : '';
+
+      prompt = `Based on this weekly meal plan:\n\n${mealPlan}${recipeIngredients}\n\nCreate a grocery list organized by store section. Where saved recipe ingredients are provided above, use those exact ingredients. Return ONLY a valid JSON array, no other text. Format:
 [
   { "category": "Produce", "items": ["apples (3)", "spinach (1 bag)"] },
   { "category": "Protein", "items": ["chicken breast (2 lbs)"] },

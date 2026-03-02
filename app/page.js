@@ -483,10 +483,10 @@ export default function Home() {
       {/* Dislike Feedback Modal */}
       {feedbackModal && (
         <div
-          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 50, display: 'flex', alignItems: 'flex-end' }}
+          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 200, display: 'flex', alignItems: 'flex-end' }}
           onClick={e => { if (e.target === e.currentTarget) setFeedbackModal(null); }}
         >
-          <div style={{ backgroundColor: 'white', borderRadius: '24px 24px 0 0', padding: '24px', width: '100%', maxWidth: '680px', margin: '0 auto', boxSizing: 'border-box' }}>
+          <div style={{ backgroundColor: 'white', borderRadius: '24px 24px 0 0', padding: '24px', paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 16px))', width: '100%', maxWidth: '680px', margin: '0 auto', boxSizing: 'border-box' }}>
             <p style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: '600', color: '#404F43' }}>What didn't you like? 👎</p>
             <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#9AAC9D', fontWeight: '300' }}>{feedbackModal.meal}</p>
 

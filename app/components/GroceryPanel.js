@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 
-// Try to split "3 medium sweet potatoes" into { name: "Sweet potatoes", quantity: "3 medium" }
+// Split "3 medium sweet potatoes" → { name: "Sweet potatoes", quantity: "3 medium" }
 const parseItem = (text) => {
   if (!text) return { name: text, quantity: '' };
   const m = text.match(
@@ -17,14 +17,14 @@ const parseItem = (text) => {
   return { name: text, quantity: '' };
 };
 
-// Rounded-square checkbox (matches mockup)
-const RoundedSquareCheck = ({ checked, onToggle }) => (
+// Circle checkbox per spec
+const CircleCheck = ({ checked, onToggle }) => (
   <div
     onClick={onToggle}
     style={{
-      width: '18px', height: '18px', borderRadius: '6px', flexShrink: 0,
-      border: `1.5px solid ${checked ? '#D5824A' : 'rgba(0,0,0,0.18)'}`,
-      backgroundColor: checked ? '#D5824A' : 'rgba(255,255,255,0.5)',
+      width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0,
+      border: `1.5px solid ${checked ? '#D5824A' : 'rgba(213,130,74,0.5)'}`,
+      backgroundColor: checked ? '#D5824A' : 'transparent',
       cursor: 'pointer',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       transition: 'all 0.15s',
@@ -80,17 +80,17 @@ export default function GroceryPanel() {
   return (
     <div style={{
       position: 'fixed', right: 0, top: 0, bottom: 0, width: '300px',
-      background: 'rgba(218,182,148,0.36)',
-      backdropFilter: 'blur(12px)',
-      WebkitBackdropFilter: 'blur(12px)',
-      borderLeft: '1px solid rgba(255,255,255,0.50)',
+      background: 'rgba(90,160,180,0.14)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      borderLeft: '1px solid rgba(255,255,255,0.35)',
       display: 'flex', flexDirection: 'column',
       zIndex: 100,
     }}>
 
       {/* Header */}
       <div style={{ padding: '24px 20px 12px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <p style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: '#3D2E1E', fontFamily: 'Montserrat, sans-serif', letterSpacing: '-0.2px' }}>Grocery List</p>
+        <p style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: 'rgba(80,45,10,0.85)', fontFamily: 'Montserrat, sans-serif', letterSpacing: '-0.2px' }}>Grocery List</p>
         <button
           onClick={refresh}
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5AA0B4', fontSize: '12px', fontFamily: 'Montserrat, sans-serif', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '3px', padding: 0 }}
@@ -102,7 +102,7 @@ export default function GroceryPanel() {
       {/* Scrollable list */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 14px' }}>
         {groceryItems.length === 0 ? (
-          <p style={{ fontSize: '12px', color: 'rgba(60,40,20,0.45)', fontWeight: '300', textAlign: 'center', marginTop: '48px', lineHeight: '1.6', fontFamily: 'Montserrat, sans-serif' }}>
+          <p style={{ fontSize: '12px', color: 'rgba(80,45,10,0.4)', fontWeight: '300', textAlign: 'center', marginTop: '48px', lineHeight: '1.6', fontFamily: 'Montserrat, sans-serif' }}>
             Generate a meal plan to<br />populate your grocery list.
           </p>
         ) : (
@@ -110,31 +110,27 @@ export default function GroceryPanel() {
             {/* Active items grouped by category */}
             {Object.entries(grouped).map(([category, items]) => (
               <div key={category}>
-                {/* Refined line divider */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '18px 0 8px' }}>
-                  <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.45)' }} />
+                {/* Category header with bottom border underline */}
+                <div style={{ paddingBottom: '6px', marginBottom: '8px', marginTop: '16px', borderBottom: '1px solid rgba(255,255,255,0.3)' }}>
                   <span style={{
-                    fontSize: '9px', fontWeight: '700', color: 'rgba(90,60,25,0.55)',
-                    letterSpacing: '1.5px', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif',
-                    whiteSpace: 'nowrap',
+                    fontSize: '9px', fontWeight: '700', color: 'rgba(80,45,10,0.4)',
+                    letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif',
                   }}>{category}</span>
-                  <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.45)' }} />
                 </div>
                 {items.map(item => {
                   const { name, quantity } = parseItem(item.text);
                   return (
                     <div key={item.id} style={{
                       display: 'flex', alignItems: 'center', gap: '10px',
-                      padding: '9px 12px', marginBottom: '5px',
-                      background: 'rgba(255,255,255,0.28)',
+                      padding: '8px 12px', marginBottom: '5px',
+                      background: 'rgba(255,255,255,0.18)',
                       borderRadius: '12px',
-                      border: '1px solid rgba(255,255,255,0.50)',
-                      backdropFilter: 'blur(4px)',
+                      border: '1px solid rgba(255,255,255,0.35)',
                     }}>
-                      <RoundedSquareCheck checked={false} onToggle={() => toggle(item)} />
-                      <span style={{ flex: 1, fontSize: '13px', fontWeight: '400', color: '#3D2E1E', lineHeight: 1.3, fontFamily: 'Montserrat, sans-serif' }}>{name}</span>
+                      <CircleCheck checked={false} onToggle={() => toggle(item)} />
+                      <span style={{ flex: 1, fontSize: '12px', fontWeight: '500', color: 'rgba(80,45,10,0.8)', lineHeight: 1.3, fontFamily: 'Montserrat, sans-serif' }}>{name}</span>
                       {quantity && (
-                        <span style={{ fontSize: '11px', color: 'rgba(80,55,30,0.5)', fontWeight: '300', fontFamily: 'Montserrat, sans-serif', whiteSpace: 'nowrap' }}>{quantity}</span>
+                        <span style={{ fontSize: '10px', color: 'rgba(80,45,10,0.4)', fontWeight: '600', fontFamily: 'Montserrat, sans-serif', whiteSpace: 'nowrap' }}>{quantity}</span>
                       )}
                     </div>
                   );
@@ -145,29 +141,26 @@ export default function GroceryPanel() {
             {/* Completed items */}
             {checked.length > 0 && (
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '18px 0 8px' }}>
-                  <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.30)' }} />
+                <div style={{ paddingBottom: '6px', marginBottom: '8px', marginTop: '16px', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
                   <span style={{
-                    fontSize: '9px', fontWeight: '700', color: 'rgba(90,60,25,0.40)',
-                    letterSpacing: '1.5px', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif',
-                    whiteSpace: 'nowrap',
+                    fontSize: '9px', fontWeight: '700', color: 'rgba(80,45,10,0.3)',
+                    letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif',
                   }}>Completed</span>
-                  <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.30)' }} />
                 </div>
                 {checked.map(item => {
                   const { name, quantity } = parseItem(item.text);
                   return (
                     <div key={item.id} style={{
                       display: 'flex', alignItems: 'center', gap: '10px',
-                      padding: '9px 12px', marginBottom: '5px',
-                      background: 'rgba(255,255,255,0.14)',
+                      padding: '8px 12px', marginBottom: '5px',
+                      background: 'rgba(255,255,255,0.10)',
                       borderRadius: '12px',
-                      border: '1px solid rgba(255,255,255,0.30)',
+                      border: '1px solid rgba(255,255,255,0.22)',
                     }}>
-                      <RoundedSquareCheck checked={true} onToggle={() => toggle(item)} />
-                      <span style={{ flex: 1, fontSize: '13px', fontWeight: '400', color: 'rgba(80,55,30,0.45)', lineHeight: 1.3, textDecoration: 'line-through', fontFamily: 'Montserrat, sans-serif' }}>{name}</span>
+                      <CircleCheck checked={true} onToggle={() => toggle(item)} />
+                      <span style={{ flex: 1, fontSize: '12px', fontWeight: '500', color: 'rgba(80,45,10,0.35)', lineHeight: 1.3, textDecoration: 'line-through', fontFamily: 'Montserrat, sans-serif' }}>{name}</span>
                       {quantity && (
-                        <span style={{ fontSize: '11px', color: 'rgba(80,55,30,0.3)', fontWeight: '300', fontFamily: 'Montserrat, sans-serif', whiteSpace: 'nowrap' }}>{quantity}</span>
+                        <span style={{ fontSize: '10px', color: 'rgba(80,45,10,0.25)', fontWeight: '600', fontFamily: 'Montserrat, sans-serif', whiteSpace: 'nowrap' }}>{quantity}</span>
                       )}
                     </div>
                   );
@@ -182,16 +175,16 @@ export default function GroceryPanel() {
 
       {/* Progress bar footer */}
       {total > 0 && (
-        <div style={{ padding: '12px 14px', borderTop: '1px solid rgba(255,255,255,0.25)', flexShrink: 0 }}>
+        <div style={{ padding: '12px 14px', borderTop: '1px solid rgba(255,255,255,0.22)', flexShrink: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '11px', color: 'rgba(80,55,30,0.55)', fontWeight: '400', fontFamily: 'Montserrat, sans-serif' }}>
+            <span style={{ fontSize: '11px', color: 'rgba(80,45,10,0.45)', fontWeight: '400', fontFamily: 'Montserrat, sans-serif' }}>
               {checked.length} of {total} checked
             </span>
             <span style={{ fontSize: '11px', color: '#D5824A', fontWeight: '600', fontFamily: 'Montserrat, sans-serif' }}>
               {pct}%
             </span>
           </div>
-          <div style={{ height: '3px', backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: '2px', overflow: 'hidden' }}>
+          <div style={{ height: '3px', backgroundColor: 'rgba(255,255,255,0.25)', borderRadius: '2px', overflow: 'hidden' }}>
             <div style={{
               height: '100%', width: `${pct}%`,
               backgroundColor: '#D5824A', borderRadius: '2px',

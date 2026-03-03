@@ -148,6 +148,13 @@ export default function Home() {
     return '✋ Small soft pieces';
   };
 
+  // Per-meal-type label color per spec
+  const getMealLabelColor = (label) => {
+    if (label === 'LUNCH') return '#5AA0B4';
+    if (label === 'DINNER') return '#D5824A';
+    return '#9AAC9D'; // BREAKFAST, SNACKS, default
+  };
+
   const getBabyMonths = (dob) => {
     if (!dob) return null;
     return Math.floor((new Date() - new Date(dob)) / (1000 * 60 * 60 * 24 * 30.44));
@@ -378,7 +385,7 @@ export default function Home() {
 
       {/* ── Context input + Generate button (one card) ── */}
       <div className="glass-card" style={{ padding: '14px 16px', marginBottom: '20px' }}>
-        <p style={{ margin: '0 0 8px', fontSize: '9px', fontWeight: '700', color: '#5AA0B4', letterSpacing: '1.2px', textTransform: 'uppercase' }}>This Week's Context</p>
+        <p style={{ margin: '0 0 8px', fontSize: '10px', fontWeight: '700', color: '#5AA0B4', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif' }}>This Week's Context</p>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
           <textarea
             placeholder="Cravings, schedule, training plans... tell me about your week"
@@ -386,18 +393,24 @@ export default function Home() {
             value={weeklyContext}
             onChange={e => setWeeklyContext(e.target.value)}
             style={{
-              flex: 1, background: 'transparent', border: 'none', outline: 'none',
-              fontSize: '13px', fontWeight: '300', fontFamily: 'Montserrat, sans-serif',
-              resize: 'none', color: '#404F43', lineHeight: '1.5', marginTop: '2px',
+              flex: 1,
+              background: 'rgba(255,255,255,0.3)',
+              border: '1px solid rgba(255,255,255,0.5)',
+              borderRadius: '12px',
+              padding: '8px 12px',
+              outline: 'none',
+              fontSize: '13px', fontWeight: '400', fontFamily: 'Montserrat, sans-serif',
+              resize: 'none', color: 'rgba(80,45,10,0.8)', lineHeight: '1.5',
             }}
           />
           <button
             onClick={generateMealPlan}
             disabled={loadingMealPlan}
             style={{
-              backgroundColor: '#D5824A', color: 'white', border: 'none',
+              background: 'linear-gradient(135deg, #E2A06F, #D5824A)',
+              color: 'white', border: 'none',
               borderRadius: '12px', padding: '9px 20px',
-              fontSize: '13px', fontWeight: '500', fontFamily: 'Montserrat, sans-serif',
+              fontSize: '11px', fontWeight: '700', fontFamily: 'Montserrat, sans-serif',
               cursor: 'pointer', opacity: loadingMealPlan ? 0.65 : 1,
               whiteSpace: 'nowrap', flexShrink: 0,
               boxShadow: '0 3px 10px rgba(213,130,74,0.35)',
@@ -463,14 +476,14 @@ export default function Home() {
 
                       {/* Center: label + title + subtitle */}
                       <div style={{ flex: 1, minWidth: 0, paddingTop: '1px' }}>
-                        <p style={{ margin: '0 0 3px', fontSize: '10px', fontWeight: '700', color: '#5AA0B4', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                        <p style={{ margin: '0 0 3px', fontSize: '9px', fontWeight: '700', color: getMealLabelColor(meal.label), letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif' }}>
                           {meal.label}
                         </p>
-                        <p style={{ margin: 0, fontSize: '14px', fontWeight: '500', color: '#3D3529', lineHeight: '1.35' }}>
+                        <p style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: 'rgba(80,45,10,0.88)', lineHeight: '1.35', fontFamily: 'Montserrat, sans-serif' }}>
                           {linkifyMeal(title)}
                         </p>
                         {subtitle && (
-                          <p style={{ margin: '3px 0 0', fontSize: '12px', fontWeight: '300', color: '#9AAC9D', lineHeight: '1.4' }}>
+                          <p style={{ margin: '3px 0 0', fontSize: '11px', fontWeight: '400', color: 'rgba(80,45,10,0.5)', lineHeight: '1.4', fontFamily: 'Montserrat, sans-serif' }}>
                             {subtitle}
                           </p>
                         )}
@@ -479,17 +492,18 @@ export default function Home() {
                       {/* Right: action buttons */}
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
 
-                        {/* Baby Prep pill — shows summary text, above action row */}
+                        {/* Baby Prep badge — descriptive text, above action row */}
                         {babyProfile && getBabyPrepSummary(meal.value) && (
                           <button
                             onClick={() => openBabyPrep(meal.value)}
                             style={{
-                              background: 'rgba(213,130,74,0.12)',
-                              border: '1px solid rgba(213,130,74,0.30)',
-                              borderRadius: '10px',
-                              padding: '4px 11px',
-                              fontSize: '11px', fontWeight: '500',
-                              color: '#C87040',
+                              background: 'rgba(154,172,157,0.3)',
+                              border: '1px solid rgba(154,172,157,0.5)',
+                              borderRadius: '20px',
+                              padding: '3px 10px',
+                              fontSize: '9px', fontWeight: '700',
+                              color: 'rgba(60,80,60,0.8)',
+                              letterSpacing: '0.05em',
                               cursor: 'pointer',
                               fontFamily: 'Montserrat, sans-serif',
                               whiteSpace: 'nowrap',

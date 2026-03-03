@@ -26,10 +26,10 @@ export default function Sidebar() {
   return (
     <div style={{
       position: 'fixed', left: 0, top: 0, bottom: 0, width: '72px',
-      background: 'rgba(215,148,108,0.50)',
-      backdropFilter: 'blur(12px)',
-      WebkitBackdropFilter: 'blur(12px)',
-      borderRight: '1px solid rgba(255,255,255,0.40)',
+      background: 'rgba(90,160,180,0.18)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      borderRight: '1px solid rgba(255,255,255,0.35)',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       padding: '20px 0',
       zIndex: 100,
@@ -60,10 +60,11 @@ export default function Sidebar() {
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                 gap: '3px', padding: '8px 0',
                 textDecoration: 'none', position: 'relative',
-                backgroundColor: active ? 'rgba(255,255,255,0.25)' : 'transparent',
+                backgroundColor: active ? 'rgba(213,130,74,0.12)' : 'transparent',
                 transition: 'background-color 0.15s',
               }}
             >
+              {/* Active indicator bar */}
               {active && (
                 <div style={{
                   position: 'absolute', left: -10, top: '20%', bottom: '20%',
@@ -73,12 +74,12 @@ export default function Sidebar() {
               )}
               <Icon
                 size={20}
-                color={active ? '#C05A20' : 'rgba(80,45,20,0.55)'}
+                color={active ? '#D5824A' : 'rgba(80,50,20,0.6)'}
                 strokeWidth={active ? 2.2 : 1.8}
               />
               <span style={{
                 fontSize: '8px', fontWeight: '700',
-                color: active ? '#C05A20' : 'rgba(80,45,20,0.50)',
+                color: active ? '#D5824A' : 'rgba(80,50,20,0.6)',
                 letterSpacing: '0.6px', textTransform: 'uppercase',
                 fontFamily: 'Montserrat, sans-serif', lineHeight: 1,
               }}>{label}</span>
@@ -91,11 +92,11 @@ export default function Sidebar() {
       <a href="/profiles" style={{ textDecoration: 'none', flexShrink: 0 }}>
         <div style={{
           width: '36px', height: '36px', borderRadius: '50%',
-          background: 'rgba(200,120,70,0.25)',
-          border: '1.5px solid rgba(200,120,70,0.5)',
+          background: 'rgba(213,130,74,0.16)',
+          border: '1.5px solid rgba(213,130,74,0.4)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <span style={{ fontSize: '14px', fontWeight: '700', color: '#A84A18', fontFamily: 'Montserrat, sans-serif' }}>
+          <span style={{ fontSize: '14px', fontWeight: '700', color: '#D5824A', fontFamily: 'Montserrat, sans-serif' }}>
             {avatarInitial}
           </span>
         </div>

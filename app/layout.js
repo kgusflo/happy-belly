@@ -16,7 +16,7 @@ export default function RootLayout({ children }) {
         {/* Desktop Layout */}
         <div className="desktop-layout">
           <Sidebar />
-          <div style={{ marginLeft: '60px', marginRight: '300px', minHeight: '100vh', padding: '24px' }}>
+          <div style={{ marginLeft: '220px', marginRight: '300px', minHeight: '100vh', padding: '24px' }}>
             {children}
           </div>
           <GroceryPanel />

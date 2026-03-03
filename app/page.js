@@ -31,6 +31,9 @@ export default function Home() {
   const [refreshing, setRefreshing] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const hasCheckedProfiles = useRef(false);
+  const [babyProfile, setBabyProfile] = useState(null);
+  const [babyPrepModal, setBabyPrepModal] = useState({ isOpen: false, meal: '', instructions: '', loading: false });
+  const [babyPrepCache, setBabyPrepCache] = useState({});
 
   const loadData = async () => {
     const { data: recipes } = await supabase.from('recipes').select('id, name');
@@ -56,6 +59,10 @@ export default function Home() {
       setRatedMeals(rated);
     }
 
+    // Fetch baby profile for prep badge
+    const { data: babyData } = await supabase.from('family_members').select('*').eq('role', 'baby').limit(1);
+    if (babyData && babyData.length > 0) setBabyProfile(babyData[0]);
+
     // First-time user check: auto-open profile setup if no family members exist
     if (!hasCheckedProfiles.current) {
       hasCheckedProfiles.current = true;
@@ -67,6 +74,69 @@ export default function Home() {
   };
 
   useEffect(() => { loadData(); }, []);
+
+  // ── Helpers ─────────────────────────────────────────────────────────────────
+
+  const getDishIcon = (mealName) => {
+    if (!mealName) return '🍽️';
+    const lower = mealName.toLowerCase();
+    if (lower.includes('egg') || lower.includes('omelette') || lower.includes('omelet') || lower.includes('frittata')) return '🥚';
+    if (lower.includes('pancake') || lower.includes('waffle') || lower.includes('crepe')) return '🥞';
+    if (lower.includes('toast') || lower.includes('bread') || lower.includes('bagel') || lower.includes('muffin')) return '🍞';
+    if (lower.includes('oat') || lower.includes('porridge') || lower.includes('cereal') || lower.includes('granola')) return '🥣';
+    if (lower.includes('smoothie') || lower.includes('shake') || lower.includes('juice')) return '🥤';
+    if (lower.includes('yogurt') || lower.includes('yoghurt')) return '🫙';
+    if (lower.includes('salmon') || lower.includes('tuna') || lower.includes('cod') || lower.includes('trout') || lower.includes('halibut') || lower.includes('shrimp') || lower.includes('prawn')) return '🐟';
+    if (lower.includes('chicken') || lower.includes('turkey') || lower.includes('poultry')) return '🍗';
+    if (lower.includes('beef') || lower.includes('steak') || lower.includes('burger') || lower.includes('meatball') || lower.includes('mince')) return '🥩';
+    if (lower.includes('pork') || lower.includes('bacon') || lower.includes('ham') || lower.includes('sausage')) return '🥓';
+    if (lower.includes('pasta') || lower.includes('spaghetti') || lower.includes('noodle') || lower.includes('ramen') || lower.includes('fettuccine') || lower.includes('penne') || lower.includes('linguine')) return '🍝';
+    if (lower.includes('pizza')) return '🍕';
+    if (lower.includes('taco') || lower.includes('burrito') || lower.includes('quesadilla') || lower.includes('enchilada') || lower.includes('fajita')) return '🌮';
+    if (lower.includes('sushi') || lower.includes('japanese') || lower.includes('miso')) return '🍱';
+    if (lower.includes('soup') || lower.includes('stew') || lower.includes('chili') || lower.includes('chilli') || lower.includes('broth') || lower.includes('bisque')) return '🍲';
+    if (lower.includes('salad') || lower.includes('greens') || lower.includes('slaw')) return '🥗';
+    if (lower.includes('sandwich') || lower.includes('wrap') || lower.includes('sub') || lower.includes('panini')) return '🥪';
+    if (lower.includes('rice') || lower.includes('risotto') || lower.includes('fried rice') || lower.includes('pilaf')) return '🍚';
+    if (lower.includes('curry') || lower.includes('indian') || lower.includes('tikka') || lower.includes('masala')) return '🍛';
+    if (lower.includes('stir fry') || lower.includes('stir-fry') || lower.includes('wok') || lower.includes('bok choy')) return '🥢';
+    if (lower.includes('avocado') || lower.includes('guacamole')) return '🥑';
+    if (lower.includes('cheese') || lower.includes('grilled cheese')) return '🧀';
+    if (lower.includes('apple') || lower.includes('banana') || lower.includes('berry') || lower.includes('fruit')) return '🍎';
+    if (lower.includes('carrot') || lower.includes('vegetable') || lower.includes('veggie') || lower.includes('veg ') || lower.includes('broccoli')) return '🥦';
+    if (lower.includes('puree') || lower.includes('mash')) return '🥄';
+    if (lower.includes('baby')) return '👶';
+    return '🍽️';
+  };
+
+  const getBabyMonths = (dob) => {
+    if (!dob) return null;
+    return Math.floor((new Date() - new Date(dob)) / (1000 * 60 * 60 * 24 * 30.44));
+  };
+
+  const openBabyPrep = async (meal) => {
+    const months = getBabyMonths(babyProfile?.date_of_birth);
+    if (babyPrepCache[meal]) {
+      setBabyPrepModal({ isOpen: true, meal, instructions: babyPrepCache[meal], loading: false });
+      return;
+    }
+    setBabyPrepModal({ isOpen: true, meal, instructions: '', loading: true });
+    try {
+      const res = await fetch('/api/baby-prep', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ meal, babyMonths: months }),
+      });
+      const data = await res.json();
+      const instructions = data.instructions || 'Instructions not available.';
+      setBabyPrepCache(prev => ({ ...prev, [meal]: instructions }));
+      setBabyPrepModal({ isOpen: true, meal, instructions, loading: false });
+    } catch {
+      setBabyPrepModal({ isOpen: true, meal, instructions: 'Could not load instructions. Please try again.', loading: false });
+    }
+  };
+
+  // ── Meal plan logic ──────────────────────────────────────────────────────────
 
   const swapMealInText = (planText, day, mealType, newMeal) => {
     const otherDays = allDays.filter(d => d !== day);
@@ -149,7 +219,7 @@ export default function Home() {
       localStorage.setItem('mealPlan', data.result);
       await supabase.from('meal_plans').update({ plan_text: data.result }).eq('id', 1);
       generateGroceryList(data.result);
-    } catch (error) {
+    } catch {
       setMealPlan('Something went wrong. Please try again.');
     }
     setLoadingMealPlan(false);
@@ -230,6 +300,8 @@ export default function Home() {
     setSubmittingFeedback(false);
   };
 
+  // ── Touch handlers ───────────────────────────────────────────────────────────
+
   const handleTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
@@ -239,7 +311,6 @@ export default function Home() {
     if (touchStartX.current === null) return;
     const diffX = touchStartX.current - e.changedTouches[0].clientX;
     const diffY = touchStartY.current - e.changedTouches[0].clientY;
-    // Only trigger if horizontal swipe is dominant (not a scroll)
     if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 40) {
       if (diffX > 0 && selectedDayIndex < allDays.length - 1) {
         setSelectedDayIndex(prev => prev + 1);
@@ -252,17 +323,13 @@ export default function Home() {
   };
 
   const handlePullStart = (e) => {
-    if (window.scrollY === 0) {
-      pullStartY.current = e.touches[0].clientY;
-    }
+    if (window.scrollY === 0) pullStartY.current = e.touches[0].clientY;
   };
 
   const handlePullMove = (e) => {
     if (pullStartY.current === null) return;
     const dist = e.touches[0].clientY - pullStartY.current;
-    if (dist > 0) {
-      setPullDistance(Math.min(dist * 0.4, 80));
-    }
+    if (dist > 0) setPullDistance(Math.min(dist * 0.4, 80));
   };
 
   const handlePullEnd = async () => {
@@ -278,14 +345,17 @@ export default function Home() {
     }
   };
 
+  // ── Derived values ───────────────────────────────────────────────────────────
+
   const allDaysMeals = getAllDaysMeals(mealPlan);
   const selectedDay = allDays[selectedDayIndex];
   const isToday = selectedDay === todayName;
   const currentDayData = allDaysMeals.find(d => d.day === selectedDay);
+  const dateLabel = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
   return (
     <main
-      style={{ backgroundColor: '#F9D7B5', minHeight: '100vh' }}
+      style={{ minHeight: '100vh' }}
       onTouchStart={handlePullStart}
       onTouchMove={handlePullMove}
       onTouchEnd={handlePullEnd}
@@ -306,37 +376,60 @@ export default function Home() {
         </div>
       )}
 
-      {/* Slim Header */}
-      <div style={{ backgroundColor: '#5AA0B4', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottomLeftRadius: '20px', borderBottomRightRadius: '20px' }}>
+      {/* ── Slim Header ── */}
+      <div style={{ padding: '20px 16px 12px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', position: 'relative', zIndex: 1 }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'white', letterSpacing: '0.5px' }}>Happy Belly</h1>
-          <p style={{ margin: 0, fontSize: '11px', color: '#F9D7B5', fontWeight: '300' }}>Family meal planning</p>
+          <p style={{ margin: 0, fontSize: '22px', fontWeight: '700', color: '#404F43', letterSpacing: '0.2px' }}>Happy Belly</p>
+          <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#9AAC9D', fontWeight: '300' }}>{dateLabel}</p>
         </div>
+
+        {/* Week navigation — shown once a plan exists */}
+        {mealPlan && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
+            <button
+              onClick={() => setSelectedDayIndex(i => Math.max(i - 1, 0))}
+              disabled={selectedDayIndex === 0}
+              style={{ background: 'none', border: 'none', cursor: selectedDayIndex === 0 ? 'default' : 'pointer', color: selectedDayIndex === 0 ? '#D9C9B8' : '#9AAC9D', fontSize: '22px', lineHeight: 1, padding: '2px 4px', fontFamily: 'Montserrat, sans-serif' }}
+            >‹</button>
+            <div style={{ textAlign: 'center', minWidth: '72px' }}>
+              <p style={{ margin: 0, fontSize: '12px', fontWeight: '700', color: '#D5824A', letterSpacing: '0.5px' }}>
+                {isToday ? 'TODAY' : selectedDay.slice(0, 3).toUpperCase()}
+              </p>
+              <p style={{ margin: 0, fontSize: '10px', color: '#9AAC9D', fontWeight: '300' }}>{selectedDay}</p>
+            </div>
+            <button
+              onClick={() => setSelectedDayIndex(i => Math.min(i + 1, allDays.length - 1))}
+              disabled={selectedDayIndex === allDays.length - 1}
+              style={{ background: 'none', border: 'none', cursor: selectedDayIndex === allDays.length - 1 ? 'default' : 'pointer', color: selectedDayIndex === allDays.length - 1 ? '#D9C9B8' : '#9AAC9D', fontSize: '22px', lineHeight: 1, padding: '2px 4px', fontFamily: 'Montserrat, sans-serif' }}
+            >›</button>
+          </div>
+        )}
       </div>
 
-      <div style={{ maxWidth: '680px', margin: '0 auto', padding: '20px 16px 100px 16px' }}>
+      {/* ── Main content ── */}
+      <div style={{ padding: '0 16px 100px' }}>
 
-        {/* Context Input */}
-        <div style={{ marginBottom: '16px' }}>
-          <p style={{ fontSize: '12px', fontWeight: '500', color: '#9AAC9D', marginBottom: '8px', letterSpacing: '0.5px' }}>THIS WEEK</p>
+        {/* Context input — frosted glass card */}
+        <div className="glass-card" style={{ padding: '14px 16px', marginBottom: '12px' }}>
+          <p style={{ margin: '0 0 6px', fontSize: '9px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', textTransform: 'uppercase' }}>This Week</p>
           <textarea
-            placeholder="Tell me about your week... cravings, schedule, training plans..."
-            rows={3}
+            placeholder="Tell me about your week — cravings, schedule, training plans..."
+            rows={2}
             value={weeklyContext}
             onChange={e => setWeeklyContext(e.target.value)}
             style={{
               width: '100%',
-              backgroundColor: '#F9D7B5',
-              border: '1.5px solid #BDC2B4',
-              borderRadius: '16px',
-              padding: '12px 16px',
+              background: 'transparent',
+              border: 'none',
+              outline: 'none',
               fontSize: '13px',
               fontWeight: '300',
               fontFamily: 'Montserrat, sans-serif',
               resize: 'none',
-              outline: 'none',
-              boxSizing: 'border-box',
               color: '#404F43',
+              boxSizing: 'border-box',
+              lineHeight: '1.55',
+              padding: 0,
             }}
           />
         </div>
@@ -358,142 +451,157 @@ export default function Home() {
               cursor: 'pointer',
               opacity: loadingMealPlan ? 0.6 : 1,
               letterSpacing: '0.3px',
+              boxShadow: '0 4px 16px rgba(213, 130, 74, 0.35)',
             }}
           >
             {loadingMealPlan ? 'Generating...' : 'Generate Meal Plan'}
           </button>
         </div>
 
-        {/* Day Navigation + Meal Cards */}
+        {/* Dot day indicators */}
         {mealPlan && (
-          <div>
-
-            {/* Day Selector Row */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '5px', marginBottom: '16px' }}>
+            {allDays.map((day, i) => (
               <button
-                onClick={() => setSelectedDayIndex(i => Math.max(i - 1, 0))}
-                disabled={selectedDayIndex === 0}
+                key={day}
+                onClick={() => setSelectedDayIndex(i)}
                 style={{
-                  background: 'none',
+                  width: i === selectedDayIndex ? '20px' : '7px',
+                  height: '7px',
+                  borderRadius: '4px',
+                  backgroundColor: i === selectedDayIndex ? '#D5824A' : day === todayName ? '#5AA0B4' : 'rgba(0,0,0,0.18)',
                   border: 'none',
-                  cursor: selectedDayIndex === 0 ? 'default' : 'pointer',
-                  fontSize: '24px',
-                  lineHeight: '1',
-                  color: selectedDayIndex === 0 ? '#D9C9B8' : '#9AAC9D',
-                  padding: '0 8px',
-                  fontFamily: 'Montserrat, sans-serif',
+                  cursor: 'pointer',
+                  padding: 0,
+                  transition: 'width 0.2s ease, background-color 0.2s ease',
                 }}
-              >
-                ‹
-              </button>
+              />
+            ))}
+          </div>
+        )}
 
-              <div style={{ textAlign: 'center' }}>
-                <p style={{ fontSize: '12px', fontWeight: '600', color: '#9AAC9D', margin: 0, letterSpacing: '0.5px' }}>
-                  {isToday ? `TODAY — ${selectedDay.toUpperCase()}` : selectedDay.toUpperCase()}
-                </p>
-              </div>
+        {/* Swipeable Meal Cards */}
+        {mealPlan && (
+          <div
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
+            {currentDayData ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {[
+                  { label: 'BREAKFAST', value: currentDayData.meals.breakfast },
+                  { label: 'LUNCH', value: currentDayData.meals.lunch },
+                  { label: 'DINNER', value: currentDayData.meals.dinner },
+                  { label: 'SNACKS', value: currentDayData.meals.snacks },
+                  { label: "BABY'S MEAL", value: currentDayData.meals.baby },
+                ].filter(m => m.value).map(meal => {
+                  const mealKey = meal.value.replace(/\*\*/g, '').trim();
+                  const rating = ratedMeals[mealKey];
+                  const isSwapping = swapping?.day === selectedDay && swapping?.mealType === meal.label;
+                  const isBabyMeal = meal.label === "BABY'S MEAL";
 
-              <button
-                onClick={() => setSelectedDayIndex(i => Math.min(i + 1, allDays.length - 1))}
-                disabled={selectedDayIndex === allDays.length - 1}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: selectedDayIndex === allDays.length - 1 ? 'default' : 'pointer',
-                  fontSize: '24px',
-                  lineHeight: '1',
-                  color: selectedDayIndex === allDays.length - 1 ? '#D9C9B8' : '#9AAC9D',
-                  padding: '0 8px',
-                  fontFamily: 'Montserrat, sans-serif',
-                }}
-              >
-                ›
-              </button>
-            </div>
+                  return (
+                    <div key={meal.label} className="glass-card" style={{ padding: '14px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
 
-            {/* Dot Indicators */}
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '5px', marginBottom: '16px' }}>
-              {allDays.map((day, i) => (
-                <button
-                  key={day}
-                  onClick={() => setSelectedDayIndex(i)}
-                  style={{
-                    width: i === selectedDayIndex ? '20px' : '7px',
-                    height: '7px',
-                    borderRadius: '4px',
-                    backgroundColor: i === selectedDayIndex ? '#D5824A' : day === todayName ? '#5AA0B4' : '#BDC2B4',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: 0,
-                    transition: 'width 0.2s ease, background-color 0.2s ease',
-                  }}
-                />
-              ))}
-            </div>
-
-            {/* Swipeable Meal Cards Area */}
-            <div
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-            >
-              {currentDayData ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {[
-                    { label: 'BREAKFAST', value: currentDayData.meals.breakfast, emoji: '🌅' },
-                    { label: 'LUNCH', value: currentDayData.meals.lunch, emoji: '☀️' },
-                    { label: 'DINNER', value: currentDayData.meals.dinner, emoji: '🌙' },
-                    { label: 'SNACKS', value: currentDayData.meals.snacks, emoji: '🍎' },
-                    { label: "BABY'S MEAL", value: currentDayData.meals.baby, emoji: '👶' },
-                  ].filter(m => m.value).map(meal => (
-                    <div key={meal.label} style={{
-                      backgroundColor: 'white',
-                      borderRadius: '20px',
-                      padding: '16px',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '16px' }}>{meal.emoji}</span>
-                          <p style={{ margin: 0, fontSize: '11px', fontWeight: '600', color: '#E2A06F', letterSpacing: '0.8px' }}>{meal.label}</p>
+                        {/* Dish icon */}
+                        <div style={{
+                          width: '44px', height: '44px', borderRadius: '14px',
+                          backgroundColor: 'rgba(213,130,74,0.1)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          flexShrink: 0,
+                        }}>
+                          <span style={{ fontSize: '22px' }}>{getDishIcon(meal.value)}</span>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                          <button
-                            onClick={() => likeMeal(selectedDay, meal.label, meal.value)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', opacity: ratedMeals[meal.value.replace(/\*\*/g, '').trim()] === 'liked' ? 1 : 0.3, transition: 'opacity 0.15s' }}
-                            title="I liked this"
-                          ><ThumbsUp size={14} color="#9AAC9D" /></button>
-                          <button
-                            onClick={() => openDislikeModal(selectedDay, meal.label, meal.value)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', opacity: ratedMeals[meal.value.replace(/\*\*/g, '').trim()] === 'disliked' ? 1 : 0.3, transition: 'opacity 0.15s' }}
-                            title="I didn't like this"
-                          ><ThumbsDown size={14} color="#9AAC9D" /></button>
-                          <button
-                            onClick={() => swapMeal(selectedDay, meal.label, meal.value)}
-                            disabled={swapping !== null}
-                            style={{ background: 'none', border: 'none', cursor: swapping !== null ? 'default' : 'pointer', opacity: swapping?.day === selectedDay && swapping?.mealType === meal.label ? 0.4 : 1, color: '#BDC2B4', display: 'flex', alignItems: 'center', padding: '4px' }}
-                          >
-                            {swapping?.day === selectedDay && swapping?.mealType === meal.label ? '⏳' : <Shuffle size={14} color="#BDC2B4" />}
-                          </button>
+
+                        {/* Center: meal type + name */}
+                        <div style={{ flex: 1, minWidth: 0, paddingTop: '2px' }}>
+                          <p style={{ margin: '0 0 4px', fontSize: '10px', fontWeight: '700', color: '#E2A06F', letterSpacing: '0.8px' }}>{meal.label}</p>
+                          <p style={{ margin: 0, fontSize: '13px', fontWeight: '300', color: '#404F43', lineHeight: '1.5' }}>{linkifyMeal(meal.value)}</p>
                         </div>
+
+                        {/* Right: baby prep badge + action buttons */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', flexShrink: 0 }}>
+                          {isBabyMeal && babyProfile && (
+                            <button
+                              onClick={() => openBabyPrep(meal.value)}
+                              style={{
+                                backgroundColor: 'rgba(213,130,74,0.12)',
+                                border: '1px solid rgba(213,130,74,0.35)',
+                                borderRadius: '8px',
+                                padding: '3px 9px',
+                                fontSize: '10px',
+                                fontWeight: '600',
+                                color: '#D5824A',
+                                cursor: 'pointer',
+                                fontFamily: 'Montserrat, sans-serif',
+                                whiteSpace: 'nowrap',
+                                letterSpacing: '0.3px',
+                              }}
+                            >
+                              👶 Prep
+                            </button>
+                          )}
+                          <div style={{ display: 'flex', gap: '0px', alignItems: 'center' }}>
+                            <button
+                              onClick={() => likeMeal(selectedDay, meal.label, meal.value)}
+                              title="I liked this"
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', opacity: rating === 'liked' ? 1 : 0.3, transition: 'opacity 0.15s' }}
+                            ><ThumbsUp size={14} color={rating === 'liked' ? '#5AA0B4' : '#9AAC9D'} /></button>
+                            <button
+                              onClick={() => openDislikeModal(selectedDay, meal.label, meal.value)}
+                              title="I didn't like this"
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', opacity: rating === 'disliked' ? 1 : 0.3, transition: 'opacity 0.15s' }}
+                            ><ThumbsDown size={14} color={rating === 'disliked' ? '#D5824A' : '#9AAC9D'} /></button>
+                            <button
+                              onClick={() => swapMeal(selectedDay, meal.label, meal.value)}
+                              disabled={swapping !== null}
+                              title="Swap meal"
+                              style={{ background: 'none', border: 'none', cursor: swapping !== null ? 'default' : 'pointer', padding: '4px', display: 'flex', alignItems: 'center', opacity: isSwapping ? 0.4 : 1, transition: 'opacity 0.15s' }}
+                            >
+                              {isSwapping ? <span style={{ fontSize: '13px' }}>⏳</span> : <Shuffle size={14} color="#BDC2B4" />}
+                            </button>
+                          </div>
+                        </div>
+
                       </div>
-                      <p style={{ margin: 0, fontSize: '14px', fontWeight: '300', color: '#404F43', lineHeight: '1.5' }}>{linkifyMeal(meal.value)}</p>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '24px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-                  <p style={{ color: '#9AAC9D', fontWeight: '300', fontSize: '14px', margin: 0 }}>No meals found for {selectedDay}. Try regenerating!</p>
-                </div>
-              )}
-            </div>
-
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="glass-card" style={{ padding: '32px', textAlign: 'center' }}>
+                <p style={{ color: '#9AAC9D', fontWeight: '300', fontSize: '14px', margin: 0 }}>No meals found for {selectedDay}. Try regenerating!</p>
+              </div>
+            )}
           </div>
         )}
 
       </div>
 
-      {/* Dislike Feedback Modal */}
-      {/* First-time profile setup */}
+      {/* ── Baby Prep Modal ── */}
+      {babyPrepModal.isOpen && (
+        <div
+          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 200, display: 'flex', alignItems: 'flex-end' }}
+          onClick={e => { if (e.target === e.currentTarget) setBabyPrepModal(prev => ({ ...prev, isOpen: false })); }}
+        >
+          <div style={{ backgroundColor: 'white', borderRadius: '24px 24px 0 0', padding: '24px', paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 16px))', width: '100%', maxWidth: '680px', margin: '0 auto', boxSizing: 'border-box' }}>
+            <p style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: '600', color: '#404F43', fontFamily: 'Montserrat, sans-serif' }}>👶 Baby Prep Instructions</p>
+            <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#9AAC9D', fontWeight: '300', fontFamily: 'Montserrat, sans-serif' }}>{babyPrepModal.meal}</p>
+            {babyPrepModal.loading ? (
+              <p style={{ color: '#BDC2B4', fontSize: '13px', fontFamily: 'Montserrat, sans-serif' }}>Getting prep instructions...</p>
+            ) : (
+              <p style={{ fontSize: '14px', fontWeight: '300', color: '#404F43', lineHeight: '1.75', whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'Montserrat, sans-serif' }}>{babyPrepModal.instructions}</p>
+            )}
+            <button
+              onClick={() => setBabyPrepModal(prev => ({ ...prev, isOpen: false }))}
+              style={{ marginTop: '20px', width: '100%', backgroundColor: '#D5824A', color: 'white', border: 'none', borderRadius: '16px', padding: '12px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', fontWeight: '500', cursor: 'pointer' }}
+            >Done</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── First-time profile setup ── */}
       <ProfileModal
         isOpen={showProfileSetup}
         onClose={() => setShowProfileSetup(false)}
@@ -502,14 +610,15 @@ export default function Home() {
         onSaved={() => setShowProfileSetup(false)}
       />
 
+      {/* ── Dislike Feedback Modal ── */}
       {feedbackModal && (
         <div
           style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 200, display: 'flex', alignItems: 'flex-end' }}
           onClick={e => { if (e.target === e.currentTarget) setFeedbackModal(null); }}
         >
           <div style={{ backgroundColor: 'white', borderRadius: '24px 24px 0 0', padding: '24px', paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 16px))', width: '100%', maxWidth: '680px', margin: '0 auto', boxSizing: 'border-box' }}>
-            <p style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: '600', color: '#404F43' }}>What didn't you like? 👎</p>
-            <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#9AAC9D', fontWeight: '300' }}>{feedbackModal.meal}</p>
+            <p style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: '600', color: '#404F43', fontFamily: 'Montserrat, sans-serif' }}>What didn't you like? 👎</p>
+            <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#9AAC9D', fontWeight: '300', fontFamily: 'Montserrat, sans-serif' }}>{feedbackModal.meal}</p>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
               {['Too complex', 'Not enough protein', 'Too heavy', "Didn't enjoy the taste", 'Wrong ingredients', 'Boring / repetitive', 'Too time-consuming', 'Taking a break — revisit later'].map(tag => (

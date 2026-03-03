@@ -22,9 +22,7 @@ export default function Recipes() {
   const [extractingFromPhoto, setExtractingFromPhoto] = useState(false);
   const [photoPreviewNames, setPhotoPreviewNames] = useState([]);
 
-  useEffect(() => {
-    fetchRecipes();
-  }, []);
+  useEffect(() => { fetchRecipes(); }, []);
 
   const fetchRecipes = async () => {
     const { data } = await supabase.from('recipes').select('*').order('use_count', { ascending: false });
@@ -40,25 +38,25 @@ export default function Recipes() {
     setLoading(false);
   };
 
-const editRecipe = (recipe) => {
-  setForm({
-    name: recipe.name || '',
-    protein_source: recipe.protein_source || '',
-    ingredients: recipe.ingredients || '',
-    instructions: recipe.instructions || '',
-    notes: recipe.notes || '',
-    prep_time: recipe.prep_time || '',
-    batch_friendly: recipe.batch_friendly || false,
-    baby_adaptable: recipe.baby_adaptable || false,
-    one_pan: recipe.one_pan || false,
-    favorite: recipe.favorite || false,
-    nutritional_profile: recipe.nutritional_profile || '',
-    url: recipe.url || '',
-    image_url: recipe.image_url || '',
-    id: recipe.id,
-  });
-  setView('add');
-};
+  const editRecipe = (recipe) => {
+    setForm({
+      name: recipe.name || '',
+      protein_source: recipe.protein_source || '',
+      ingredients: recipe.ingredients || '',
+      instructions: recipe.instructions || '',
+      notes: recipe.notes || '',
+      prep_time: recipe.prep_time || '',
+      batch_friendly: recipe.batch_friendly || false,
+      baby_adaptable: recipe.baby_adaptable || false,
+      one_pan: recipe.one_pan || false,
+      favorite: recipe.favorite || false,
+      nutritional_profile: recipe.nutritional_profile || '',
+      url: recipe.url || '',
+      image_url: recipe.image_url || '',
+      id: recipe.id,
+    });
+    setView('add');
+  };
 
   const saveRecipe = async () => {
     setSaving(true);
@@ -74,10 +72,10 @@ const editRecipe = (recipe) => {
       image_url: form.image_url || null,
     };
     if (form.id) {
-  await supabase.from('recipes').update(cleaned).eq('id', form.id);
-} else {
-  await supabase.from('recipes').insert(cleaned);
-}
+      await supabase.from('recipes').update(cleaned).eq('id', form.id);
+    } else {
+      await supabase.from('recipes').insert(cleaned);
+    }
     await fetchRecipes();
     setView('list');
     setForm({
@@ -119,7 +117,7 @@ const editRecipe = (recipe) => {
       });
       const data = await res.json();
       if (data.recipe) setForm({ ...form, ...data.recipe, url: urlInput });
-    } catch (e) {
+    } catch {
       alert('Could not fetch recipe from that URL. Try adding it manually.');
     }
     setFetchingUrl(false);
@@ -130,14 +128,10 @@ const editRecipe = (recipe) => {
     setExtractingFromPhoto(true);
     setPhotoPreviewNames(Array.from(files).map(f => f.name));
     try {
-      // Convert all selected files to base64
       const images = await Promise.all(Array.from(files).map(file =>
         new Promise((resolve, reject) => {
           const reader = new FileReader();
-          reader.onload = () => resolve({
-            data: reader.result.split(',')[1],
-            mediaType: file.type || 'image/jpeg',
-          });
+          reader.onload = () => resolve({ data: reader.result.split(',')[1], mediaType: file.type || 'image/jpeg' });
           reader.onerror = reject;
           reader.readAsDataURL(file);
         })
@@ -153,8 +147,7 @@ const editRecipe = (recipe) => {
       } else {
         alert('Could not read the recipe from those photos. Try a clearer photo or add manually.');
       }
-    } catch (e) {
-      console.error('Photo extract error:', e);
+    } catch {
       alert('Something went wrong reading the photos. Try again.');
     }
     setExtractingFromPhoto(false);
@@ -172,7 +165,7 @@ const editRecipe = (recipe) => {
       });
       const data = await res.json();
       setForm({ ...form, nutritional_profile: data.nutrition });
-    } catch (e) {
+    } catch {
       alert('Could not analyze nutrition.');
     }
     setAnalyzingNutrition(false);
@@ -183,16 +176,11 @@ const editRecipe = (recipe) => {
     setUploadingPhoto(true);
     try {
       const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-      const { error } = await supabase.storage
-        .from('recipe-images')
-        .upload(fileName, file, { upsert: true });
+      const { error } = await supabase.storage.from('recipe-images').upload(fileName, file, { upsert: true });
       if (error) throw error;
-      const { data: { publicUrl } } = supabase.storage
-        .from('recipe-images')
-        .getPublicUrl(fileName);
+      const { data: { publicUrl } } = supabase.storage.from('recipe-images').getPublicUrl(fileName);
       setForm(prev => ({ ...prev, image_url: publicUrl }));
-    } catch (e) {
-      console.error('Photo upload error:', e);
+    } catch {
       alert('Could not upload photo. Make sure you have a "recipe-images" storage bucket in Supabase.');
     }
     setUploadingPhoto(false);
@@ -203,31 +191,33 @@ const editRecipe = (recipe) => {
   const favorites = filtered.filter(r => r.favorite);
   const rest = filtered.filter(r => !r.favorite);
 
+  // ── Shared sub-components ─────────────────────────────────────────────────
+
   const TagBadge = ({ label, active, plain }) => (
     <span style={{
       fontSize: '11px',
       padding: '3px 10px',
       borderRadius: '20px',
-      backgroundColor: plain ? 'transparent' : active ? '#F9D7B5' : '#f3f4f6',
-      color: plain ? '#404F43' : active ? '#D5824A' : '#9ca3af',
+      fontFamily: 'Montserrat, sans-serif',
+      backgroundColor: plain ? 'transparent' : active ? 'rgba(213,130,74,0.15)' : 'rgba(0,0,0,0.06)',
+      border: active ? '1px solid rgba(213,130,74,0.3)' : 'none',
+      color: plain ? '#9AAC9D' : active ? '#D5824A' : '#9AAC9D',
       fontWeight: '400',
     }}>{label}</span>
   );
 
   const RecipeCard = ({ recipe }) => (
-    <div onClick={() => { setSelected(recipe); setView('detail'); }}
-      style={{
-        backgroundColor: 'white',
-        borderRadius: '20px',
-        padding: '16px',
-        marginBottom: '10px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-        cursor: 'pointer',
-      }}>
+    <div
+      onClick={() => { setSelected(recipe); setView('detail'); }}
+      className="glass-card"
+      style={{ padding: '16px', marginBottom: '10px', cursor: 'pointer' }}
+    >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div style={{ flex: 1 }}>
-          <p style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: '500', color: '#404F43' }}>{recipe.name}</p>
-          {recipe.protein_source && <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#9AAC9D', fontWeight: '300' }}>{recipe.protein_source}</p>}
+          <p style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: '500', color: '#404F43', fontFamily: 'Montserrat, sans-serif' }}>{recipe.name}</p>
+          {recipe.protein_source && (
+            <p style={{ margin: '0 0 8px', fontSize: '12px', color: '#9AAC9D', fontWeight: '300', fontFamily: 'Montserrat, sans-serif' }}>{recipe.protein_source}</p>
+          )}
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             {recipe.batch_friendly && <TagBadge label="Batch friendly" active />}
             {recipe.baby_adaptable && <TagBadge label="Baby adaptable" active />}
@@ -237,86 +227,139 @@ const editRecipe = (recipe) => {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
           <span style={{ fontSize: '16px' }}>{recipe.favorite ? '⭐' : ''}</span>
-          <p style={{ margin: 0, fontSize: '11px', color: '#BDC2B4', fontWeight: '300' }}>{recipe.use_count || 0}x</p>
+          <p style={{ margin: 0, fontSize: '11px', color: '#BDC2B4', fontWeight: '300', fontFamily: 'Montserrat, sans-serif' }}>{recipe.use_count || 0}x</p>
         </div>
       </div>
     </div>
   );
 
+  // ── Frosted glass teal header (shared between loading + main) ─────────────
+
+  const PageHeader = () => (
+    <div style={{
+      background: 'rgba(90, 160, 180, 0.72)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      borderBottom: '1px solid rgba(255,255,255,0.25)',
+      padding: '16px 20px',
+      borderBottomLeftRadius: '20px',
+      borderBottomRightRadius: '20px',
+      position: 'relative',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}>
+      {view !== 'list' && (
+        <button
+          onClick={() => { setView('list'); setSelected(null); }}
+          style={{ position: 'absolute', left: '16px', background: 'none', border: 'none', cursor: 'pointer', color: 'white', fontSize: '14px', fontFamily: 'Montserrat, sans-serif', fontWeight: '300', top: '50%', transform: 'translateY(-50%)' }}
+        >← Back</button>
+      )}
+      <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'white', fontFamily: 'Montserrat, sans-serif' }}>
+        {view === 'list' ? 'Recipe Library' : view === 'add' ? (form.id ? 'Edit Recipe' : 'Add Recipe') : selected?.name}
+      </h1>
+    </div>
+  );
+
+  // ── Input style used in the add form ─────────────────────────────────────
+
+  const inputStyle = {
+    border: '1.5px solid rgba(189,194,180,0.7)',
+    borderRadius: '12px',
+    padding: '10px 14px',
+    fontSize: '13px',
+    fontFamily: 'Montserrat, sans-serif',
+    fontWeight: '300',
+    outline: 'none',
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    color: '#404F43',
+    width: '100%',
+    boxSizing: 'border-box',
+  };
+
+  // ── Loading state ─────────────────────────────────────────────────────────
+
   if (loading) return (
-    <main style={{ backgroundColor: '#F9D7B5', minHeight: '100vh' }}>
-      <div style={{ backgroundColor: '#5AA0B4', padding: '16px 20px', borderBottomLeftRadius: '20px', borderBottomRightRadius: '20px' }}>
-        <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'white' }}>Recipe Library</h1>
+    <main style={{ minHeight: '100vh' }}>
+      <div style={{
+        background: 'rgba(90, 160, 180, 0.72)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(255,255,255,0.25)',
+        padding: '16px 20px',
+        borderBottomLeftRadius: '20px',
+        borderBottomRightRadius: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'white', fontFamily: 'Montserrat, sans-serif' }}>Recipe Library</h1>
       </div>
-      <div style={{ padding: '40px', textAlign: 'center', color: '#9AAC9D' }}>Loading...</div>
+      <div style={{ padding: '40px', textAlign: 'center', color: '#9AAC9D', fontFamily: 'Montserrat, sans-serif' }}>Loading...</div>
     </main>
   );
 
+  // ── Main render ───────────────────────────────────────────────────────────
+
   return (
-    <main style={{ backgroundColor: '#F9D7B5', minHeight: '100vh' }}>
+    <main style={{ minHeight: '100vh' }}>
 
-      {/* Header */}
-      <div style={{ backgroundColor: '#5AA0B4', padding: '16px 20px', borderBottomLeftRadius: '20px', borderBottomRightRadius: '20px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {view !== 'list' && (
-          <button onClick={() => { setView('list'); setSelected(null); }}
-            style={{ position: 'absolute', left: '16px', background: 'none', border: 'none', cursor: 'pointer', color: 'black', fontSize: '14px', fontFamily: 'Montserrat, sans-serif', fontWeight: '300', top: '50%', transform: 'translateY(-50%)' }}>
-            ← 
-          </button>
-        )}
-        <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'white' }}>
-          {view === 'list' ? 'Recipe Library' : view === 'add' ? 'Add Recipe' : selected?.name}
-        </h1>
-      </div>
+      <PageHeader />
 
-      <div style={{ maxWidth: '680px', margin: '0 auto', padding: '20px 16px 100px 16px' }}>
+      <div style={{ maxWidth: '680px', margin: '0 auto', padding: '20px 16px 100px' }}>
 
-        {/* LIST VIEW */}
+        {/* ── LIST VIEW ── */}
         {view === 'list' && (
           <>
-            {/* Protein Filter */}
+            {/* Protein filter pills */}
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '16px' }}>
               {proteinSources.map(p => (
-                <button key={p} onClick={() => setFilterProtein(p)}
+                <button
+                  key={p}
+                  onClick={() => setFilterProtein(p)}
                   style={{
-                    padding: '6px 14px',
+                    padding: '7px 16px',
                     borderRadius: '20px',
-                    border: 'none',
+                    border: filterProtein === p ? 'none' : '1px solid rgba(255,255,255,0.65)',
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
                     fontSize: '12px',
                     fontFamily: 'Montserrat, sans-serif',
-                    backgroundColor: filterProtein === p ? '#5AA0B4' : 'white',
-                    color: filterProtein === p ? 'white' : '#6b7280',
-                    fontWeight: '400',
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-                  }}>
-                  {p}
-                </button>
+                    fontWeight: filterProtein === p ? '600' : '400',
+                    backgroundColor: filterProtein === p ? '#D5824A' : 'rgba(255,255,255,0.55)',
+                    backdropFilter: filterProtein === p ? 'none' : 'blur(8px)',
+                    WebkitBackdropFilter: filterProtein === p ? 'none' : 'blur(8px)',
+                    color: filterProtein === p ? 'white' : '#9AAC9D',
+                    boxShadow: filterProtein === p ? '0 2px 8px rgba(213,130,74,0.35)' : '0 1px 4px rgba(0,0,0,0.06)',
+                    transition: 'all 0.15s',
+                  }}
+                >{p}</button>
               ))}
             </div>
 
             {favorites.length > 0 && (
               <div style={{ marginBottom: '16px' }}>
-                <p style={{ fontSize: '11px', fontWeight: '600', color: '#9AAC9D', letterSpacing: '0.5px', marginBottom: '8px' }}>⭐ FAVORITES</p>
+                <p style={{ fontSize: '10px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase' }}>⭐ Favorites</p>
                 {favorites.map(r => <RecipeCard key={r.id} recipe={r} />)}
               </div>
             )}
 
             {rest.length > 0 && (
               <div>
-                <p style={{ fontSize: '11px', fontWeight: '600', color: '#9AAC9D', letterSpacing: '0.5px', marginBottom: '8px' }}>ALL RECIPES</p>
+                <p style={{ fontSize: '10px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase' }}>All Recipes</p>
                 {rest.map(r => <RecipeCard key={r.id} recipe={r} />)}
               </div>
             )}
 
             {recipes.length === 0 && (
-              <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '40px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-                <p style={{ color: '#9AAC9D', fontWeight: '300', fontSize: '14px', margin: 0 }}>No recipes yet. Add your first one!</p>
+              <div className="glass-card" style={{ padding: '40px', textAlign: 'center' }}>
+                <p style={{ color: '#9AAC9D', fontWeight: '300', fontSize: '14px', margin: 0, fontFamily: 'Montserrat, sans-serif' }}>No recipes yet. Add your first one!</p>
               </div>
             )}
 
             <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
-              <button onClick={() => setView('add')}
+              <button
+                onClick={() => setView('add')}
                 style={{
                   backgroundColor: '#D5824A',
                   color: 'white',
@@ -327,16 +370,16 @@ const editRecipe = (recipe) => {
                   fontWeight: '500',
                   fontFamily: 'Montserrat, sans-serif',
                   cursor: 'pointer',
-                }}>
-                + Add Recipe
-              </button>
+                  boxShadow: '0 4px 16px rgba(213,130,74,0.35)',
+                }}
+              >+ Add Recipe</button>
             </div>
           </>
         )}
 
-        {/* DETAIL VIEW */}
+        {/* ── DETAIL VIEW ── */}
         {view === 'detail' && selected && (
-          <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+          <div className="glass-card" style={{ padding: '20px' }}>
 
             {selected.image_url && (
               <div style={{ margin: '-20px -20px 20px -20px' }}>
@@ -356,58 +399,61 @@ const editRecipe = (recipe) => {
                 {selected.prep_time && <TagBadge label={selected.prep_time} plain />}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <button onClick={() => editRecipe(selected)}
-                  style={{ background: 'none', border: '1.5px solid #BDC2B4', borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontFamily: 'Montserrat, sans-serif', color: '#404F43', cursor: 'pointer' }}>
-                  Edit
-                </button>
-                <button onClick={() => updateRecipe({ ...selected, favorite: !selected.favorite })}
-                  style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>
-                  {selected.favorite ? '⭐' : '☆'}
-                </button>
+                <button
+                  onClick={() => editRecipe(selected)}
+                  style={{ background: 'rgba(255,255,255,0.5)', border: '1.5px solid rgba(189,194,180,0.7)', borderRadius: '20px', padding: '4px 14px', fontSize: '12px', fontFamily: 'Montserrat, sans-serif', color: '#404F43', cursor: 'pointer' }}
+                >Edit</button>
+                <button
+                  onClick={() => updateRecipe({ ...selected, favorite: !selected.favorite })}
+                  style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}
+                >{selected.favorite ? '⭐' : '☆'}</button>
               </div>
             </div>
 
             {selected.protein_source && (
-              <p style={{ fontSize: '12px', color: '#5AA0B4', fontWeight: '500', marginBottom: '16px' }}>Protein: {selected.protein_source}</p>
+              <p style={{ fontSize: '12px', color: '#5AA0B4', fontWeight: '500', marginBottom: '16px', fontFamily: 'Montserrat, sans-serif' }}>Protein: {selected.protein_source}</p>
             )}
 
             {selected.ingredients && (
               <div style={{ marginBottom: '16px' }}>
-                <p style={{ fontSize: '12px', fontWeight: '600', color: '#9AAC9D', letterSpacing: '0.5px', marginBottom: '6px' }}>INGREDIENTS</p>
-                <p style={{ fontSize: '14px', fontWeight: '300', color: '#404F43', lineHeight: '1.6', whiteSpace: 'pre-wrap', margin: 0 }}>{selected.ingredients}</p>
+                <p style={{ fontSize: '10px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', marginBottom: '6px', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase' }}>Ingredients</p>
+                <p style={{ fontSize: '14px', fontWeight: '300', color: '#404F43', lineHeight: '1.65', whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'Montserrat, sans-serif' }}>{selected.ingredients}</p>
               </div>
             )}
 
             {selected.instructions && (
               <div style={{ marginBottom: '16px' }}>
-                <p style={{ fontSize: '12px', fontWeight: '600', color: '#9AAC9D', letterSpacing: '0.5px', marginBottom: '6px' }}>INSTRUCTIONS</p>
-                <p style={{ fontSize: '14px', fontWeight: '300', color: '#404F43', lineHeight: '1.6', whiteSpace: 'pre-wrap', margin: 0 }}>{selected.instructions}</p>
+                <p style={{ fontSize: '10px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', marginBottom: '6px', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase' }}>Instructions</p>
+                <p style={{ fontSize: '14px', fontWeight: '300', color: '#404F43', lineHeight: '1.65', whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'Montserrat, sans-serif' }}>{selected.instructions}</p>
               </div>
             )}
 
             {selected.nutritional_profile && (
-              <div style={{ marginBottom: '16px', backgroundColor: '#F9D7B5', borderRadius: '16px', padding: '12px 16px' }}>
-                <p style={{ fontSize: '12px', fontWeight: '600', color: '#9AAC9D', letterSpacing: '0.5px', marginBottom: '6px' }}>NUTRITION</p>
-                <p style={{ fontSize: '13px', fontWeight: '300', color: '#404F43', lineHeight: '1.6', margin: 0 }}>{selected.nutritional_profile}</p>
+              <div style={{ marginBottom: '16px', backgroundColor: 'rgba(249,215,181,0.45)', borderRadius: '14px', padding: '12px 16px', border: '1px solid rgba(255,255,255,0.6)' }}>
+                <p style={{ fontSize: '10px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', marginBottom: '6px', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase' }}>Nutrition</p>
+                <p style={{ fontSize: '13px', fontWeight: '300', color: '#404F43', lineHeight: '1.6', margin: 0, fontFamily: 'Montserrat, sans-serif' }}>{selected.nutritional_profile}</p>
               </div>
             )}
 
             {selected.notes && (
               <div style={{ marginBottom: '16px' }}>
-                <p style={{ fontSize: '12px', fontWeight: '600', color: '#9AAC9D', letterSpacing: '0.5px', marginBottom: '6px' }}>NOTES</p>
-                <p style={{ fontSize: '14px', fontWeight: '300', color: '#404F43', lineHeight: '1.6', whiteSpace: 'pre-wrap', margin: 0 }}>{selected.notes}</p>
+                <p style={{ fontSize: '10px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', marginBottom: '6px', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase' }}>Notes</p>
+                <p style={{ fontSize: '14px', fontWeight: '300', color: '#404F43', lineHeight: '1.65', whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'Montserrat, sans-serif' }}>{selected.notes}</p>
               </div>
             )}
 
             {selected.url && (
-              <a href={selected.url} target="_blank" rel="noopener noreferrer"
-                style={{ fontSize: '13px', color: '#5AA0B4', fontWeight: '400', display: 'block', marginBottom: '16px' }}>
-                🔗 View Original Recipe
-              </a>
+              <a
+                href={selected.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: '13px', color: '#5AA0B4', fontWeight: '400', display: 'block', marginBottom: '16px', fontFamily: 'Montserrat, sans-serif' }}
+              >🔗 View Original Recipe</a>
             )}
 
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
-              <button onClick={() => incrementUseCount(selected)}
+              <button
+                onClick={() => incrementUseCount(selected)}
                 style={{
                   backgroundColor: '#9AAC9D',
                   color: 'white',
@@ -418,82 +464,68 @@ const editRecipe = (recipe) => {
                   fontWeight: '500',
                   fontFamily: 'Montserrat, sans-serif',
                   cursor: 'pointer',
-                }}>
-                  
-                ✓ I made this! ({selected.use_count || 0}x)
-              </button>
+                }}
+              >✓ I made this! ({selected.use_count || 0}x)</button>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <button onClick={() => deleteRecipe(selected.id)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '13px',
-                  color: '#BDC2B4',
-                  cursor: 'pointer',
-                  fontFamily: 'Montserrat, sans-serif',
-                  fontWeight: '400',
-                }}>
-                Delete Recipe
-              </button>
+              <button
+                onClick={() => deleteRecipe(selected.id)}
+                style={{ background: 'none', border: 'none', fontSize: '13px', color: '#BDC2B4', cursor: 'pointer', fontFamily: 'Montserrat, sans-serif', fontWeight: '400' }}
+              >Delete Recipe</button>
             </div>
           </div>
         )}
 
-        {/* ADD VIEW */}
+        {/* ── ADD / EDIT VIEW ── */}
         {view === 'add' && (
-          <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+          <div className="glass-card" style={{ padding: '20px' }}>
 
-            <p style={{ fontSize: '12px', fontWeight: '600', color: '#9AAC9D', letterSpacing: '0.5px', marginBottom: '8px' }}>IMPORT FROM URL</p>
+            <p style={{ fontSize: '10px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', marginBottom: '8px', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif' }}>Import from URL</p>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
               <input
-                style={{ flex: 1, border: '1.5px solid #BDC2B4', borderRadius: '12px', padding: '10px 14px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', fontWeight: '300', outline: 'none' }}
+                style={{ ...inputStyle, flex: 1 }}
                 placeholder="Paste recipe URL..."
                 value={urlInput}
                 onChange={e => setUrlInput(e.target.value)}
               />
-              <button onClick={fetchFromUrl} disabled={fetchingUrl}
-                style={{ backgroundColor: '#5AA0B4', color: 'white', border: 'none', borderRadius: '12px', padding: '10px 16px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', fontWeight: '400', cursor: 'pointer' }}>
-                {fetchingUrl ? '...' : 'Import'}
-              </button>
+              <button
+                onClick={fetchFromUrl}
+                disabled={fetchingUrl}
+                style={{ backgroundColor: '#5AA0B4', color: 'white', border: 'none', borderRadius: '12px', padding: '10px 16px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', fontWeight: '400', cursor: 'pointer', flexShrink: 0 }}
+              >{fetchingUrl ? '...' : 'Import'}</button>
             </div>
 
-            {/* Photo Import */}
-            <p style={{ fontSize: '12px', fontWeight: '600', color: '#9AAC9D', letterSpacing: '0.5px', marginBottom: '8px' }}>IMPORT FROM PHOTO</p>
+            <p style={{ fontSize: '10px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', marginBottom: '8px', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif' }}>Import from Photo</p>
             <label style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-              border: '1.5px dashed #BDC2B4', borderRadius: '12px', padding: '12px 16px',
+              border: '1.5px dashed rgba(189,194,180,0.8)', borderRadius: '12px', padding: '12px 16px',
               fontSize: '13px', fontFamily: 'Montserrat, sans-serif', color: '#5AA0B4',
               fontWeight: '400', cursor: extractingFromPhoto ? 'default' : 'pointer',
               marginBottom: '8px', opacity: extractingFromPhoto ? 0.6 : 1,
+              backgroundColor: 'rgba(255,255,255,0.3)',
             }}>
               {extractingFromPhoto
                 ? `⏳ Reading ${photoPreviewNames.length} photo${photoPreviewNames.length !== 1 ? 's' : ''}...`
                 : '📸 Select photo(s) of a recipe'}
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                style={{ display: 'none' }}
-                disabled={extractingFromPhoto}
-                onChange={e => e.target.files.length > 0 && extractFromPhotos(e.target.files)}
-              />
+              <input type="file" accept="image/*" multiple style={{ display: 'none' }} disabled={extractingFromPhoto}
+                onChange={e => e.target.files.length > 0 && extractFromPhotos(e.target.files)} />
             </label>
-            <p style={{ fontSize: '11px', color: '#BDC2B4', fontWeight: '300', margin: '0 0 16px 2px' }}>
+            <p style={{ fontSize: '11px', color: '#BDC2B4', fontWeight: '300', margin: '0 0 16px 2px', fontFamily: 'Montserrat, sans-serif' }}>
               Select multiple photos if your recipe spans several screenshots
             </p>
 
-            <div style={{ borderTop: '1px solid #f3f4f6', marginBottom: '20px' }} />
+            <div style={{ borderTop: '1px solid rgba(0,0,0,0.08)', marginBottom: '20px' }} />
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
-                { key: 'name', placeholder: 'Recipe name', required: true },
+                { key: 'name', placeholder: 'Recipe name *' },
                 { key: 'protein_source', placeholder: 'Protein source (e.g. Chicken, Salmon)' },
                 { key: 'prep_time', placeholder: 'Prep time (e.g. 30 mins)' },
               ].map(field => (
-                <input key={field.key}
-                  style={{ border: '1.5px solid #BDC2B4', borderRadius: '12px', padding: '10px 14px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', fontWeight: '300', outline: 'none' }}
+                <input
+                  key={field.key}
+                  style={inputStyle}
                   placeholder={field.placeholder}
                   value={form[field.key]}
                   onChange={e => setForm({ ...form, [field.key]: e.target.value })}
@@ -505,8 +537,9 @@ const editRecipe = (recipe) => {
                 { key: 'instructions', placeholder: 'Instructions', rows: 4 },
                 { key: 'notes', placeholder: 'Notes', rows: 2 },
               ].map(field => (
-                <textarea key={field.key}
-                  style={{ border: '1.5px solid #BDC2B4', borderRadius: '12px', padding: '10px 14px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', fontWeight: '300', outline: 'none', resize: 'none' }}
+                <textarea
+                  key={field.key}
+                  style={{ ...inputStyle, resize: 'none' }}
                   placeholder={field.placeholder}
                   rows={field.rows}
                   value={form[field.key]}
@@ -520,10 +553,10 @@ const editRecipe = (recipe) => {
                   { key: 'baby_adaptable', label: 'Baby adaptable' },
                   { key: 'one_pan', label: 'One pan' },
                 ].map(tag => (
-                  <label key={tag.key} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#404F43', cursor: 'pointer', fontWeight: '300' }}>
+                  <label key={tag.key} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#404F43', cursor: 'pointer', fontWeight: '300', fontFamily: 'Montserrat, sans-serif' }}>
                     <input type="checkbox" checked={form[tag.key]}
                       onChange={e => setForm({ ...form, [tag.key]: e.target.checked })}
-                      style={{ accentColor: '#5AA0B4' }} />
+                      style={{ accentColor: '#D5824A' }} />
                     {tag.label}
                   </label>
                 ))}
@@ -531,51 +564,47 @@ const editRecipe = (recipe) => {
 
               {/* Photo Upload */}
               <div>
-                <p style={{ fontSize: '12px', fontWeight: '600', color: '#9AAC9D', letterSpacing: '0.5px', marginBottom: '8px' }}>PHOTO</p>
+                <p style={{ fontSize: '10px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', marginBottom: '8px', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif' }}>Photo</p>
                 {form.image_url && (
                   <div style={{ position: 'relative', marginBottom: '8px' }}>
                     <img src={form.image_url} alt="Recipe" style={{ width: '100%', height: '160px', objectFit: 'cover', borderRadius: '12px' }} />
                     <button
                       onClick={() => setForm(prev => ({ ...prev, image_url: '' }))}
-                      style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', color: 'white', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      ✕
-                    </button>
+                      style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', color: 'white', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >✕</button>
                   </div>
                 )}
                 <label style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                  backgroundColor: '#F9D7B5', border: '1.5px dashed #BDC2B4', borderRadius: '12px',
+                  backgroundColor: 'rgba(249,215,181,0.5)', border: '1.5px dashed rgba(189,194,180,0.8)', borderRadius: '12px',
                   padding: '12px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif',
                   color: '#D5824A', fontWeight: '400', cursor: 'pointer',
                   opacity: uploadingPhoto ? 0.6 : 1,
                 }}>
                   {uploadingPhoto ? '⏳ Uploading...' : '📷 ' + (form.image_url ? 'Change Photo' : 'Add Photo')}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                    disabled={uploadingPhoto}
-                    onChange={e => e.target.files[0] && uploadPhoto(e.target.files[0])}
-                  />
+                  <input type="file" accept="image/*" style={{ display: 'none' }} disabled={uploadingPhoto}
+                    onChange={e => e.target.files[0] && uploadPhoto(e.target.files[0])} />
                 </label>
               </div>
 
-              <button onClick={analyzeNutrition} disabled={analyzingNutrition || !form.ingredients}
-                style={{ backgroundColor: '#F9D7B5', border: '1.5px solid #BDC2B4', borderRadius: '12px', padding: '10px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', color: '#D5824A', fontWeight: '400', cursor: 'pointer' }}>
-                {analyzingNutrition ? '⏳ Analyzing...' : '🔍 Auto-analyze Nutrition'}
-              </button>
+              <button
+                onClick={analyzeNutrition}
+                disabled={analyzingNutrition || !form.ingredients}
+                style={{ backgroundColor: 'rgba(249,215,181,0.5)', border: '1.5px solid rgba(189,194,180,0.7)', borderRadius: '12px', padding: '10px', fontSize: '13px', fontFamily: 'Montserrat, sans-serif', color: '#D5824A', fontWeight: '400', cursor: 'pointer' }}
+              >{analyzingNutrition ? '⏳ Analyzing...' : '🔍 Auto-analyze Nutrition'}</button>
 
               {form.nutritional_profile && (
-                <div style={{ backgroundColor: '#F9D7B5', borderRadius: '12px', padding: '12px' }}>
-                  <p style={{ fontSize: '12px', color: '#404F43', fontWeight: '300', margin: 0 }}>{form.nutritional_profile}</p>
+                <div style={{ backgroundColor: 'rgba(249,215,181,0.45)', borderRadius: '12px', padding: '12px', border: '1px solid rgba(255,255,255,0.6)' }}>
+                  <p style={{ fontSize: '12px', color: '#404F43', fontWeight: '300', margin: 0, fontFamily: 'Montserrat, sans-serif' }}>{form.nutritional_profile}</p>
                 </div>
               )}
 
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: '8px' }}>
-                <button onClick={saveRecipe} disabled={!form.name || saving}
-                  style={{ backgroundColor: '#D5824A', color: 'white', border: 'none', borderRadius: '50px', padding: '12px 40px', fontSize: '14px', fontFamily: 'Montserrat, sans-serif', fontWeight: '500', cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>
-                  {saving ? 'Saving...' : 'Save Recipe'}
-                </button>
+                <button
+                  onClick={saveRecipe}
+                  disabled={!form.name || saving}
+                  style={{ backgroundColor: '#D5824A', color: 'white', border: 'none', borderRadius: '50px', padding: '12px 40px', fontSize: '14px', fontFamily: 'Montserrat, sans-serif', fontWeight: '500', cursor: 'pointer', opacity: saving ? 0.6 : 1, boxShadow: '0 4px 16px rgba(213,130,74,0.35)' }}
+                >{saving ? 'Saving...' : 'Save Recipe'}</button>
               </div>
             </div>
           </div>

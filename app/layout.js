@@ -1,7 +1,6 @@
 import "./globals.css";
-import Sidebar from './components/Sidebar';
+import DesktopLayout from './components/DesktopLayout';
 import BottomNav from './components/BottomNav';
-import GroceryPanel from './components/GroceryPanel';
 
 export const metadata = {
   title: "Happy Belly",
@@ -11,16 +10,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body style={{ margin: 0, padding: 0, backgroundColor: '#F9D7B5', fontFamily: 'Montserrat, sans-serif' }}>
+      <body style={{ margin: 0, padding: 0, fontFamily: 'Montserrat, sans-serif' }}>
 
-        {/* Desktop Layout */}
-        <div className="desktop-layout">
-          <Sidebar />
-          <div style={{ marginLeft: '220px', marginRight: '300px', minHeight: '100vh', padding: '24px' }}>
-            {children}
-          </div>
-          <GroceryPanel />
-        </div>
+        {/* Desktop Layout — sidebar always visible; grocery panel only on Meals screen */}
+        <DesktopLayout>{children}</DesktopLayout>
 
         {/* Mobile Layout */}
         <div className="mobile-layout">

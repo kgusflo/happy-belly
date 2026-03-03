@@ -13,7 +13,6 @@ export default function Profiles() {
     const { data } = await supabase.from('family_members').select('*').order('created_at');
     if (data) {
       setMembers(data);
-      // Auto-launch the modal on first visit when no profiles exist
       if (data.length === 0 && !autoLaunched.current) {
         autoLaunched.current = true;
         setChatModal({ isOpen: true, memberType: null, existingProfile: null });
@@ -22,9 +21,7 @@ export default function Profiles() {
     setLoading(false);
   };
 
-  useEffect(() => {
-    fetchMembers();
-  }, []); // eslint-disable-line
+  useEffect(() => { fetchMembers(); }, []); // eslint-disable-line
 
   const deleteProfile = async (id, name) => {
     if (!window.confirm(`Remove ${name}'s profile?`)) return;
@@ -50,48 +47,59 @@ export default function Profiles() {
     return { stage: `${months} months — Toddler eating`, prep: 'Most family foods, small soft pieces' };
   };
 
-  const memberIcon = (role) => {
-    if (role === 'baby') return '👶';
-    if (role === 'mom') return '👩';
-    return '👤';
-  };
+  // ── Frosted teal header ───────────────────────────────────────────────────
+
+  const tealHeader = (
+    <div style={{
+      background: 'rgba(90, 160, 180, 0.72)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      borderBottom: '1px solid rgba(255,255,255,0.25)',
+      padding: '16px 20px',
+      borderBottomLeftRadius: '20px',
+      borderBottomRightRadius: '20px',
+    }}>
+      <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'white', fontFamily: 'Montserrat, sans-serif' }}>Profiles</h1>
+      <p style={{ margin: '2px 0 0', fontSize: '11px', color: 'rgba(255,255,255,0.75)', fontWeight: '300', fontFamily: 'Montserrat, sans-serif' }}>Manage your family profiles</p>
+    </div>
+  );
+
+  // ── Loading state ─────────────────────────────────────────────────────────
 
   if (loading) return (
-    <main style={{ backgroundColor: '#F9D7B5', minHeight: '100vh' }}>
-      <div style={{ backgroundColor: '#5AA0B4', padding: '16px 20px', borderBottomLeftRadius: '20px', borderBottomRightRadius: '20px' }}>
-        <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'white' }}>Profiles</h1>
-      </div>
+    <main style={{ minHeight: '100vh' }}>
+      {tealHeader}
       <div style={{ padding: '40px', textAlign: 'center', color: '#9AAC9D', fontFamily: 'Montserrat, sans-serif' }}>Loading...</div>
     </main>
   );
 
+  // ── Main render ───────────────────────────────────────────────────────────
+
   return (
-    <main style={{ backgroundColor: '#F9D7B5', minHeight: '100vh' }}>
+    <main style={{ minHeight: '100vh' }}>
 
-      {/* Header */}
-      <div style={{ backgroundColor: '#5AA0B4', padding: '16px 20px', borderBottomLeftRadius: '20px', borderBottomRightRadius: '20px' }}>
-        <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'white' }}>Profiles</h1>
-        <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#F9D7B5', fontWeight: '300' }}>Manage your family profiles</p>
-      </div>
+      {tealHeader}
 
-      <div style={{ maxWidth: '680px', margin: '0 auto', padding: '20px 16px 100px 16px' }}>
+      <div style={{ maxWidth: '680px', margin: '0 auto', padding: '20px 16px 100px' }}>
 
-        <p style={{ fontSize: '11px', fontWeight: '600', color: '#9AAC9D', letterSpacing: '0.5px', marginBottom: '12px' }}>FAMILY PROFILES</p>
+        <p style={{ fontSize: '10px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', marginBottom: '12px', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif' }}>Family Profiles</p>
 
+        {/* Empty state */}
         {members.length === 0 && (
-          <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '24px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '12px' }}>
-            <p style={{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: '500', color: '#404F43', fontFamily: 'Montserrat, sans-serif' }}>No profiles yet</p>
+          <div className="glass-card" style={{ padding: '24px', textAlign: 'center', marginBottom: '12px' }}>
+            <p style={{ margin: '0 0 6px', fontSize: '15px', fontWeight: '500', color: '#404F43', fontFamily: 'Montserrat, sans-serif' }}>No profiles yet</p>
             <p style={{ margin: 0, fontSize: '13px', fontWeight: '300', color: '#9AAC9D', fontFamily: 'Montserrat, sans-serif' }}>Add your family members so Claude can personalise your meal plans.</p>
           </div>
         )}
 
+        {/* Profile cards */}
         {members.map(member => {
           const babyStage = member.role === 'baby' ? getBabyStage(member.date_of_birth) : null;
           return (
-            <div key={member.id} style={{ backgroundColor: 'white', borderRadius: '20px', padding: '16px', marginBottom: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            <div key={member.id} className="glass-card" style={{ padding: '16px', marginBottom: '10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: '500', color: '#404F43', fontFamily: 'Montserrat, sans-serif' }}>
+                  <p style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: '500', color: '#404F43', fontFamily: 'Montserrat, sans-serif' }}>
                     {member.name}
                   </p>
                   {babyStage && (
@@ -111,29 +119,35 @@ export default function Profiles() {
                 <div style={{ display: 'flex', gap: '8px', flexShrink: 0, marginLeft: '12px' }}>
                   <button
                     onClick={() => openChat(member.role === 'baby' ? 'baby' : 'adult', member)}
-                    style={{ backgroundColor: '#F9D7B5', border: '1.5px solid #BDC2B4', borderRadius: '12px', padding: '6px 14px', fontSize: '12px', fontFamily: 'Montserrat, sans-serif', fontWeight: '400', cursor: 'pointer', color: '#404F43' }}
-                  >
-                    Edit
-                  </button>
+                    style={{ backgroundColor: 'rgba(249,215,181,0.5)', border: '1.5px solid rgba(189,194,180,0.7)', borderRadius: '12px', padding: '6px 14px', fontSize: '12px', fontFamily: 'Montserrat, sans-serif', fontWeight: '400', cursor: 'pointer', color: '#404F43' }}
+                  >Edit</button>
                   <button
                     onClick={() => deleteProfile(member.id, member.name)}
-                    style={{ backgroundColor: 'transparent', border: '1.5px solid #E8C4C4', borderRadius: '12px', padding: '6px 10px', fontSize: '12px', fontFamily: 'Montserrat, sans-serif', fontWeight: '400', cursor: 'pointer', color: '#C4887A' }}
-                  >
-                    ✕
-                  </button>
+                    style={{ backgroundColor: 'transparent', border: '1.5px solid rgba(196,136,122,0.6)', borderRadius: '12px', padding: '6px 10px', fontSize: '12px', fontFamily: 'Montserrat, sans-serif', fontWeight: '400', cursor: 'pointer', color: '#C4887A' }}
+                  >✕</button>
                 </div>
               </div>
             </div>
           );
         })}
 
+        {/* Add family member button */}
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
           <button
             onClick={() => openChat(null, null)}
-            style={{ backgroundColor: '#D5824A', color: 'white', border: 'none', borderRadius: '50px', padding: '12px 32px', fontSize: '14px', fontFamily: 'Montserrat, sans-serif', fontWeight: '500', cursor: 'pointer' }}
-          >
-            + Add Family Member
-          </button>
+            style={{
+              backgroundColor: '#D5824A',
+              color: 'white',
+              border: 'none',
+              borderRadius: '50px',
+              padding: '12px 32px',
+              fontSize: '14px',
+              fontFamily: 'Montserrat, sans-serif',
+              fontWeight: '500',
+              cursor: 'pointer',
+              boxShadow: '0 4px 16px rgba(213,130,74,0.35)',
+            }}
+          >+ Add Family Member</button>
         </div>
 
       </div>

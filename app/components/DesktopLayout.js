@@ -11,7 +11,7 @@ export default function DesktopLayout({ children }) {
     <div className="desktop-layout">
       <Sidebar />
       <div style={{
-        marginLeft: '220px',
+        marginLeft: '72px',
         marginRight: isMealsScreen ? '300px' : '0',
         minHeight: '100vh',
         padding: '24px',

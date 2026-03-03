@@ -80,10 +80,10 @@ export default function GroceryPanel() {
   return (
     <div style={{
       position: 'fixed', right: 0, top: 0, bottom: 0, width: '300px',
-      background: 'rgba(195,160,120,0.52)',
-      backdropFilter: 'blur(28px)',
-      WebkitBackdropFilter: 'blur(28px)',
-      borderLeft: '1px solid rgba(255,255,255,0.35)',
+      background: 'rgba(210,175,135,0.28)',
+      backdropFilter: 'blur(10px)',
+      WebkitBackdropFilter: 'blur(10px)',
+      borderLeft: '1px solid rgba(255,255,255,0.45)',
       display: 'flex', flexDirection: 'column',
       zIndex: 100,
     }}>
@@ -121,10 +121,10 @@ export default function GroceryPanel() {
                     <div key={item.id} style={{
                       display: 'flex', alignItems: 'center', gap: '10px',
                       padding: '9px 12px', marginBottom: '5px',
-                      background: 'rgba(255,255,255,0.48)',
+                      background: 'rgba(255,255,255,0.28)',
                       borderRadius: '12px',
-                      border: '1px solid rgba(255,255,255,0.65)',
-                      backdropFilter: 'blur(6px)',
+                      border: '1px solid rgba(255,255,255,0.50)',
+                      backdropFilter: 'blur(4px)',
                     }}>
                       <RoundedSquareCheck checked={false} onToggle={() => toggle(item)} />
                       <span style={{ flex: 1, fontSize: '13px', fontWeight: '400', color: '#3D2E1E', lineHeight: 1.3, fontFamily: 'Montserrat, sans-serif' }}>{name}</span>
@@ -151,9 +151,9 @@ export default function GroceryPanel() {
                     <div key={item.id} style={{
                       display: 'flex', alignItems: 'center', gap: '10px',
                       padding: '9px 12px', marginBottom: '5px',
-                      background: 'rgba(255,255,255,0.25)',
+                      background: 'rgba(255,255,255,0.14)',
                       borderRadius: '12px',
-                      border: '1px solid rgba(255,255,255,0.4)',
+                      border: '1px solid rgba(255,255,255,0.30)',
                     }}>
                       <RoundedSquareCheck checked={true} onToggle={() => toggle(item)} />
                       <span style={{ flex: 1, fontSize: '13px', fontWeight: '400', color: 'rgba(80,55,30,0.45)', lineHeight: 1.3, textDecoration: 'line-through', fontFamily: 'Montserrat, sans-serif' }}>{name}</span>

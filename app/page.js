@@ -396,7 +396,7 @@ export default function Home() {
             disabled={loadingMealPlan}
             style={{
               backgroundColor: '#D5824A', color: 'white', border: 'none',
-              borderRadius: '50px', padding: '9px 20px',
+              borderRadius: '12px', padding: '9px 20px',
               fontSize: '13px', fontWeight: '500', fontFamily: 'Montserrat, sans-serif',
               cursor: 'pointer', opacity: loadingMealPlan ? 0.65 : 1,
               whiteSpace: 'nowrap', flexShrink: 0,
@@ -476,42 +476,17 @@ export default function Home() {
                         )}
                       </div>
 
-                      {/* Right: action buttons stacked vertically */}
+                      {/* Right: action buttons */}
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
 
-                        {/* Thumbs row */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <button
-                            onClick={() => likeMeal(selectedDay, meal.label, meal.value)}
-                            title="I liked this"
-                            style={{
-                              background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(0,0,0,0.08)',
-                              borderRadius: '50%', width: '30px', height: '30px',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              cursor: 'pointer', opacity: rating === 'liked' ? 1 : 0.45, transition: 'opacity 0.15s',
-                            }}
-                          ><ThumbsUp size={13} color={rating === 'liked' ? '#5AA0B4' : '#9AAC9D'} /></button>
-
-                          <button
-                            onClick={() => openDislikeModal(selectedDay, meal.label, meal.value)}
-                            title="I didn't like this"
-                            style={{
-                              background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(0,0,0,0.08)',
-                              borderRadius: '50%', width: '30px', height: '30px',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              cursor: 'pointer', opacity: rating === 'disliked' ? 1 : 0.45, transition: 'opacity 0.15s',
-                            }}
-                          ><ThumbsDown size={13} color={rating === 'disliked' ? '#D5824A' : '#9AAC9D'} /></button>
-                        </div>
-
-                        {/* Baby Prep button — shown on every meal when a baby profile exists */}
+                        {/* Baby Prep pill — rounded square, above action row */}
                         {babyProfile && (
                           <button
                             onClick={() => openBabyPrep(meal.value)}
                             style={{
                               background: 'rgba(213,130,74,0.12)',
                               border: '1px solid rgba(213,130,74,0.35)',
-                              borderRadius: '20px',
+                              borderRadius: '10px',
                               padding: '4px 11px',
                               fontSize: '11px', fontWeight: '500',
                               color: '#C87040',
@@ -522,20 +497,44 @@ export default function Home() {
                           >👶 Baby Prep</button>
                         )}
 
-                        {/* Swap button */}
-                        <button
-                          onClick={() => swapMeal(selectedDay, meal.label, meal.value)}
-                          disabled={swapping !== null}
-                          title="Swap meal"
-                          style={{
-                            background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(0,0,0,0.08)',
-                            borderRadius: '20px', padding: '5px 13px',
-                            fontSize: '12px', fontWeight: '500', color: '#3D3529',
-                            cursor: swapping !== null ? 'default' : 'pointer',
-                            fontFamily: 'Montserrat, sans-serif',
-                            opacity: isSwapping ? 0.4 : 1, transition: 'opacity 0.15s',
-                          }}
-                        >{isSwapping ? '...' : 'Swap'}</button>
+                        {/* Thumbs + Swap — one horizontal row */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <button
+                            onClick={() => likeMeal(selectedDay, meal.label, meal.value)}
+                            title="I liked this"
+                            style={{
+                              background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(0,0,0,0.08)',
+                              borderRadius: '10px', width: '30px', height: '30px',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              cursor: 'pointer', opacity: rating === 'liked' ? 1 : 0.5, transition: 'opacity 0.15s',
+                            }}
+                          ><ThumbsUp size={13} color={rating === 'liked' ? '#5AA0B4' : '#9AAC9D'} /></button>
+
+                          <button
+                            onClick={() => openDislikeModal(selectedDay, meal.label, meal.value)}
+                            title="I didn't like this"
+                            style={{
+                              background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(0,0,0,0.08)',
+                              borderRadius: '10px', width: '30px', height: '30px',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              cursor: 'pointer', opacity: rating === 'disliked' ? 1 : 0.5, transition: 'opacity 0.15s',
+                            }}
+                          ><ThumbsDown size={13} color={rating === 'disliked' ? '#D5824A' : '#9AAC9D'} /></button>
+
+                          <button
+                            onClick={() => swapMeal(selectedDay, meal.label, meal.value)}
+                            disabled={swapping !== null}
+                            title="Swap meal"
+                            style={{
+                              background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(0,0,0,0.08)',
+                              borderRadius: '10px', padding: '5px 13px',
+                              fontSize: '12px', fontWeight: '500', color: '#3D3529',
+                              cursor: swapping !== null ? 'default' : 'pointer',
+                              fontFamily: 'Montserrat, sans-serif',
+                              opacity: isSwapping ? 0.4 : 1, transition: 'opacity 0.15s',
+                            }}
+                          >{isSwapping ? '...' : 'Swap'}</button>
+                        </div>
                       </div>
 
                     </div>

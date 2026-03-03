@@ -80,10 +80,10 @@ export default function GroceryPanel() {
   return (
     <div style={{
       position: 'fixed', right: 0, top: 0, bottom: 0, width: '300px',
-      background: 'rgba(200,158,105,0.32)',
-      backdropFilter: 'blur(10px)',
-      WebkitBackdropFilter: 'blur(10px)',
-      borderLeft: '1px solid rgba(255,255,255,0.45)',
+      background: 'rgba(218,182,148,0.36)',
+      backdropFilter: 'blur(12px)',
+      WebkitBackdropFilter: 'blur(12px)',
+      borderLeft: '1px solid rgba(255,255,255,0.50)',
       display: 'flex', flexDirection: 'column',
       zIndex: 100,
     }}>
@@ -93,7 +93,7 @@ export default function GroceryPanel() {
         <p style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: '#3D2E1E', fontFamily: 'Montserrat, sans-serif', letterSpacing: '-0.2px' }}>Grocery List</p>
         <button
           onClick={refresh}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7B5A38', fontSize: '12px', fontFamily: 'Montserrat, sans-serif', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '3px', padding: 0 }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5AA0B4', fontSize: '12px', fontFamily: 'Montserrat, sans-serif', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '3px', padding: 0 }}
         >
           Refresh <span style={{ fontSize: '15px', display: 'inline-block', transform: refreshing ? 'rotate(360deg)' : 'none', transition: 'transform 0.4s' }}>↻</span>
         </button>

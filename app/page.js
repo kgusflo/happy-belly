@@ -378,7 +378,7 @@ export default function Home() {
 
       {/* ── Context input + Generate button (one card) ── */}
       <div className="glass-card" style={{ padding: '14px 16px', marginBottom: '20px' }}>
-        <p style={{ margin: '0 0 8px', fontSize: '9px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1.2px', textTransform: 'uppercase' }}>This Week's Context</p>
+        <p style={{ margin: '0 0 8px', fontSize: '9px', fontWeight: '700', color: '#5AA0B4', letterSpacing: '1.2px', textTransform: 'uppercase' }}>This Week's Context</p>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
           <textarea
             placeholder="Cravings, schedule, training plans... tell me about your week"
@@ -479,13 +479,13 @@ export default function Home() {
                       {/* Right: action buttons */}
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
 
-                        {/* Baby Prep pill — rounded square, above action row */}
-                        {babyProfile && (
+                        {/* Baby Prep pill — shows summary text, above action row */}
+                        {babyProfile && getBabyPrepSummary(meal.value) && (
                           <button
                             onClick={() => openBabyPrep(meal.value)}
                             style={{
                               background: 'rgba(213,130,74,0.12)',
-                              border: '1px solid rgba(213,130,74,0.35)',
+                              border: '1px solid rgba(213,130,74,0.30)',
                               borderRadius: '10px',
                               padding: '4px 11px',
                               fontSize: '11px', fontWeight: '500',
@@ -494,7 +494,7 @@ export default function Home() {
                               fontFamily: 'Montserrat, sans-serif',
                               whiteSpace: 'nowrap',
                             }}
-                          >👶 Baby Prep</button>
+                          >{getBabyPrepSummary(meal.value)}</button>
                         )}
 
                         {/* Thumbs + Swap — one horizontal row */}

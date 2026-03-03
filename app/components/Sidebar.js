@@ -27,10 +27,10 @@ export default function Sidebar() {
   return (
     <div style={{
       position: 'fixed', left: 0, top: 0, bottom: 0, width: '72px',
-      background: 'rgba(220,175,120,0.28)',
+      background: 'rgba(205,155,85,0.35)',
       backdropFilter: 'blur(10px)',
       WebkitBackdropFilter: 'blur(10px)',
-      borderRight: '1px solid rgba(255,255,255,0.40)',
+      borderRight: '1px solid rgba(255,255,255,0.45)',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       padding: '20px 0',
       zIndex: 100,

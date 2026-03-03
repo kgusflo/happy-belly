@@ -80,7 +80,7 @@ export default function GroceryPanel() {
   return (
     <div style={{
       position: 'fixed', right: 0, top: 0, bottom: 0, width: '300px',
-      background: 'rgba(210,175,135,0.28)',
+      background: 'rgba(200,158,105,0.32)',
       backdropFilter: 'blur(10px)',
       WebkitBackdropFilter: 'blur(10px)',
       borderLeft: '1px solid rgba(255,255,255,0.45)',
@@ -110,11 +110,16 @@ export default function GroceryPanel() {
             {/* Active items grouped by category */}
             {Object.entries(grouped).map(([category, items]) => (
               <div key={category}>
-                <p style={{
-                  fontSize: '10px', fontWeight: '700', color: 'rgba(80,55,30,0.55)',
-                  letterSpacing: '1.2px', textTransform: 'uppercase',
-                  margin: '14px 0 6px', fontFamily: 'Montserrat, sans-serif',
-                }}>{category}</p>
+                {/* Refined line divider */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '18px 0 8px' }}>
+                  <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.45)' }} />
+                  <span style={{
+                    fontSize: '9px', fontWeight: '700', color: 'rgba(90,60,25,0.55)',
+                    letterSpacing: '1.5px', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif',
+                    whiteSpace: 'nowrap',
+                  }}>{category}</span>
+                  <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.45)' }} />
+                </div>
                 {items.map(item => {
                   const { name, quantity } = parseItem(item.text);
                   return (
@@ -140,11 +145,15 @@ export default function GroceryPanel() {
             {/* Completed items */}
             {checked.length > 0 && (
               <div>
-                <p style={{
-                  fontSize: '10px', fontWeight: '700', color: 'rgba(80,55,30,0.4)',
-                  letterSpacing: '1.2px', textTransform: 'uppercase',
-                  margin: '14px 0 6px', fontFamily: 'Montserrat, sans-serif',
-                }}>Completed</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '18px 0 8px' }}>
+                  <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.30)' }} />
+                  <span style={{
+                    fontSize: '9px', fontWeight: '700', color: 'rgba(90,60,25,0.40)',
+                    letterSpacing: '1.5px', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif',
+                    whiteSpace: 'nowrap',
+                  }}>Completed</span>
+                  <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.30)' }} />
+                </div>
                 {checked.map(item => {
                   const { name, quantity } = parseItem(item.text);
                   return (

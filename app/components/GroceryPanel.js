@@ -22,7 +22,7 @@ const CircleCheck = ({ checked, onToggle }) => (
   <div
     onClick={onToggle}
     style={{
-      width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0,
+      width: '18px', height: '18px', borderRadius: '6px', flexShrink: 0,
       border: `1.5px solid ${checked ? '#D5824A' : 'rgba(213,130,74,0.5)'}`,
       backgroundColor: checked ? '#D5824A' : 'transparent',
       cursor: 'pointer',

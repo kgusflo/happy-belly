@@ -331,7 +331,7 @@ export default function Home() {
 
   return (
     <main
-      style={{ minHeight: '100vh' }}
+      style={{ minHeight: '100vh', paddingTop: '16px' }}
       onTouchStart={handlePullStart}
       onTouchMove={handlePullMove}
       onTouchEnd={handlePullEnd}

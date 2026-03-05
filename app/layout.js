@@ -22,11 +22,6 @@ export default function RootLayout({ children }) {
           <BottomNav />
         </div>
 
-        {/* TEMP TEST — delete after confirming updates work */}
-        <div style={{ position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)', background: 'red', color: 'white', padding: '4px 12px', zIndex: 9999, fontSize: '12px', fontWeight: 'bold' }}>
-          ✅ UPDATED
-        </div>
-
       </body>
     </html>
   );

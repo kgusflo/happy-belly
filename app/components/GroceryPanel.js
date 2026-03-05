@@ -78,13 +78,14 @@ export default function GroceryPanel() {
   }, {});
 
   return (
-    <div style={{
+    <div className="grocery-panel-desktop" style={{
       position: 'fixed', right: 0, top: 0, bottom: 0, width: '300px',
       background: 'rgba(90,160,180,0.14)',
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
       borderLeft: '1px solid rgba(255,255,255,0.35)',
-      display: 'flex', flexDirection: 'column',
+      flexDirection: 'column',
+      overflowX: 'hidden',
       zIndex: 100,
     }}>
 
@@ -100,7 +101,7 @@ export default function GroceryPanel() {
       </div>
 
       {/* Scrollable list */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 14px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 14px' }}>
         {groceryItems.length === 0 ? (
           <p style={{ fontSize: '12px', color: 'rgba(80,45,10,0.4)', fontWeight: '300', textAlign: 'center', marginTop: '48px', lineHeight: '1.6', fontFamily: 'Montserrat, sans-serif' }}>
             Generate a meal plan to<br />populate your grocery list.

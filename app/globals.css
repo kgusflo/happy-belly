@@ -61,20 +61,43 @@ input::placeholder {
   font-family: 'Montserrat', sans-serif;
 }
 
-/* Desktop layout (>= 1024px) */
-.desktop-layout {
+/* Sidebar — desktop only */
+.sidebar-desktop {
   display: none;
 }
+
+/* Grocery panel — desktop only */
+.grocery-panel-desktop {
+  display: none;
+}
+
+/* Mobile bottom nav wrapper — hidden on desktop */
 .mobile-layout {
   display: block;
 }
 
+/* Page content area */
+.page-content {
+  min-height: 100vh;
+}
+
 @media (min-width: 1024px) {
-  .desktop-layout {
-    display: block;
+  .sidebar-desktop {
+    display: flex;
+  }
+  .grocery-panel-desktop {
+    display: flex;
   }
   .mobile-layout {
     display: none;
+  }
+  .page-content {
+    margin-left: 72px;
+    padding: 24px;
+    background: linear-gradient(to right, rgba(255,255,255,0.42) 0%, rgba(185,118,65,0.22) 100%);
+  }
+  .page-content--meals {
+    margin-right: 300px;
   }
   body {
     padding-bottom: 0;

@@ -69,7 +69,7 @@ export default function Profiles() {
   if (loading) return (
     <main style={{ minHeight: '100vh' }}>
       {tealHeader}
-      <div style={{ padding: '40px', textAlign: 'center', color: '#9AAC9D', fontFamily: 'Montserrat, sans-serif' }}>Loading...</div>
+      <div style={{ padding: '40px', textAlign: 'center', color: 'rgba(80,45,10,0.5)', fontFamily: 'Montserrat, sans-serif' }}>Loading...</div>
     </main>
   );
 
@@ -82,13 +82,13 @@ export default function Profiles() {
 
       <div style={{ maxWidth: '680px', margin: '0 auto', padding: '20px 16px 100px' }}>
 
-        <p style={{ fontSize: '10px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', marginBottom: '12px', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif' }}>Family Profiles</p>
+        <p style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(80,45,10,0.4)', letterSpacing: '1px', marginBottom: '12px', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif' }}>Family Profiles</p>
 
         {/* Empty state */}
         {members.length === 0 && (
           <div className="glass-card" style={{ padding: '24px', textAlign: 'center', marginBottom: '12px' }}>
             <p style={{ margin: '0 0 6px', fontSize: '15px', fontWeight: '500', color: '#404F43', fontFamily: 'Montserrat, sans-serif' }}>No profiles yet</p>
-            <p style={{ margin: 0, fontSize: '13px', fontWeight: '300', color: '#9AAC9D', fontFamily: 'Montserrat, sans-serif' }}>Add your family members so Claude can personalise your meal plans.</p>
+            <p style={{ margin: 0, fontSize: '13px', fontWeight: '300', color: 'rgba(80,45,10,0.5)', fontFamily: 'Montserrat, sans-serif' }}>Add your family members so Claude can personalise your meal plans.</p>
           </div>
         )}
 
@@ -105,15 +105,15 @@ export default function Profiles() {
                   {babyStage && (
                     <div style={{ marginTop: '4px' }}>
                       <p style={{ margin: 0, fontSize: '12px', color: '#D5824A', fontWeight: '500', fontFamily: 'Montserrat, sans-serif' }}>{babyStage.stage}</p>
-                      <p style={{ margin: 0, fontSize: '12px', color: '#9AAC9D', fontWeight: '300', fontFamily: 'Montserrat, sans-serif' }}>{babyStage.prep}</p>
+                      <p style={{ margin: 0, fontSize: '12px', color: 'rgba(80,45,10,0.5)', fontWeight: '300', fontFamily: 'Montserrat, sans-serif' }}>{babyStage.prep}</p>
                     </div>
                   )}
                   <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                    {member.height && <p style={{ margin: 0, fontSize: '13px', color: '#9AAC9D', fontWeight: '300', fontFamily: 'Montserrat, sans-serif' }}>Height: {member.height}</p>}
-                    {member.weight && <p style={{ margin: 0, fontSize: '13px', color: '#9AAC9D', fontWeight: '300', fontFamily: 'Montserrat, sans-serif' }}>Weight: {member.weight}</p>}
-                    {member.activity_level && <p style={{ margin: 0, fontSize: '13px', color: '#9AAC9D', fontWeight: '300', fontFamily: 'Montserrat, sans-serif' }}>Activity: {member.activity_level}</p>}
-                    {member.goals && <p style={{ margin: 0, fontSize: '13px', color: '#9AAC9D', fontWeight: '300', fontFamily: 'Montserrat, sans-serif' }}>Goals: {member.goals}</p>}
-                    {member.supplements && <p style={{ margin: 0, fontSize: '13px', color: '#9AAC9D', fontWeight: '300', fontFamily: 'Montserrat, sans-serif' }}>Supplements: {member.supplements}</p>}
+                    {member.height && <p style={{ margin: 0, fontSize: '13px', color: 'rgba(80,45,10,0.5)', fontWeight: '300', fontFamily: 'Montserrat, sans-serif' }}>Height: {member.height}</p>}
+                    {member.weight && <p style={{ margin: 0, fontSize: '13px', color: 'rgba(80,45,10,0.5)', fontWeight: '300', fontFamily: 'Montserrat, sans-serif' }}>Weight: {member.weight}</p>}
+                    {member.activity_level && <p style={{ margin: 0, fontSize: '13px', color: 'rgba(80,45,10,0.5)', fontWeight: '300', fontFamily: 'Montserrat, sans-serif' }}>Activity: {member.activity_level}</p>}
+                    {member.goals && <p style={{ margin: 0, fontSize: '13px', color: 'rgba(80,45,10,0.5)', fontWeight: '300', fontFamily: 'Montserrat, sans-serif' }}>Goals: {member.goals}</p>}
+                    {member.supplements && <p style={{ margin: 0, fontSize: '13px', color: 'rgba(80,45,10,0.5)', fontWeight: '300', fontFamily: 'Montserrat, sans-serif' }}>Supplements: {member.supplements}</p>}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', flexShrink: 0, marginLeft: '12px' }}>

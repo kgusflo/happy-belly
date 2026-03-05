@@ -201,7 +201,7 @@ export default function Recipes() {
       fontFamily: 'Montserrat, sans-serif',
       backgroundColor: plain ? 'transparent' : active ? 'rgba(213,130,74,0.15)' : 'rgba(0,0,0,0.06)',
       border: active ? '1px solid rgba(213,130,74,0.3)' : 'none',
-      color: plain ? '#9AAC9D' : active ? '#D5824A' : '#9AAC9D',
+      color: plain ? 'rgba(80,45,10,0.4)' : active ? '#D5824A' : 'rgba(80,45,10,0.4)',
       fontWeight: '400',
     }}>{label}</span>
   );
@@ -216,7 +216,7 @@ export default function Recipes() {
         <div style={{ flex: 1 }}>
           <p style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: '500', color: '#404F43', fontFamily: 'Montserrat, sans-serif' }}>{recipe.name}</p>
           {recipe.protein_source && (
-            <p style={{ margin: '0 0 8px', fontSize: '12px', color: '#9AAC9D', fontWeight: '300', fontFamily: 'Montserrat, sans-serif' }}>{recipe.protein_source}</p>
+            <p style={{ margin: '0 0 8px', fontSize: '12px', color: 'rgba(80,45,10,0.5)', fontWeight: '300', fontFamily: 'Montserrat, sans-serif' }}>{recipe.protein_source}</p>
           )}
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             {recipe.batch_friendly && <TagBadge label="Batch friendly" active />}
@@ -295,7 +295,7 @@ export default function Recipes() {
       }}>
         <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'white', fontFamily: 'Montserrat, sans-serif' }}>Recipe Library</h1>
       </div>
-      <div style={{ padding: '40px', textAlign: 'center', color: '#9AAC9D', fontFamily: 'Montserrat, sans-serif' }}>Loading...</div>
+      <div style={{ padding: '40px', textAlign: 'center', color: 'rgba(80,45,10,0.5)', fontFamily: 'Montserrat, sans-serif' }}>Loading...</div>
     </main>
   );
 
@@ -329,7 +329,7 @@ export default function Recipes() {
                     backgroundColor: filterProtein === p ? '#D5824A' : 'rgba(255,255,255,0.55)',
                     backdropFilter: filterProtein === p ? 'none' : 'blur(8px)',
                     WebkitBackdropFilter: filterProtein === p ? 'none' : 'blur(8px)',
-                    color: filterProtein === p ? 'white' : '#9AAC9D',
+                    color: filterProtein === p ? 'white' : 'rgba(80,45,10,0.5)',
                     boxShadow: filterProtein === p ? '0 2px 8px rgba(213,130,74,0.35)' : '0 1px 4px rgba(0,0,0,0.06)',
                     transition: 'all 0.15s',
                   }}
@@ -339,21 +339,21 @@ export default function Recipes() {
 
             {favorites.length > 0 && (
               <div style={{ marginBottom: '16px' }}>
-                <p style={{ fontSize: '10px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase' }}>⭐ Favorites</p>
+                <p style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(80,45,10,0.4)', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase' }}>⭐ Favorites</p>
                 {favorites.map(r => <RecipeCard key={r.id} recipe={r} />)}
               </div>
             )}
 
             {rest.length > 0 && (
               <div>
-                <p style={{ fontSize: '10px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase' }}>All Recipes</p>
+                <p style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(80,45,10,0.4)', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase' }}>All Recipes</p>
                 {rest.map(r => <RecipeCard key={r.id} recipe={r} />)}
               </div>
             )}
 
             {recipes.length === 0 && (
               <div className="glass-card" style={{ padding: '40px', textAlign: 'center' }}>
-                <p style={{ color: '#9AAC9D', fontWeight: '300', fontSize: '14px', margin: 0, fontFamily: 'Montserrat, sans-serif' }}>No recipes yet. Add your first one!</p>
+                <p style={{ color: 'rgba(80,45,10,0.5)', fontWeight: '300', fontSize: '14px', margin: 0, fontFamily: 'Montserrat, sans-serif' }}>No recipes yet. Add your first one!</p>
               </div>
             )}
 
@@ -411,33 +411,33 @@ export default function Recipes() {
             </div>
 
             {selected.protein_source && (
-              <p style={{ fontSize: '12px', color: '#5AA0B4', fontWeight: '500', marginBottom: '16px', fontFamily: 'Montserrat, sans-serif' }}>Protein: {selected.protein_source}</p>
+              <p style={{ fontSize: '12px', color: 'rgba(80,45,10,0.7)', fontWeight: '500', marginBottom: '16px', fontFamily: 'Montserrat, sans-serif' }}>Protein: {selected.protein_source}</p>
             )}
 
             {selected.ingredients && (
               <div style={{ marginBottom: '16px' }}>
-                <p style={{ fontSize: '10px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', marginBottom: '6px', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase' }}>Ingredients</p>
+                <p style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(80,45,10,0.4)', letterSpacing: '1px', marginBottom: '6px', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase' }}>Ingredients</p>
                 <p style={{ fontSize: '14px', fontWeight: '300', color: '#404F43', lineHeight: '1.65', whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'Montserrat, sans-serif' }}>{selected.ingredients}</p>
               </div>
             )}
 
             {selected.instructions && (
               <div style={{ marginBottom: '16px' }}>
-                <p style={{ fontSize: '10px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', marginBottom: '6px', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase' }}>Instructions</p>
+                <p style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(80,45,10,0.4)', letterSpacing: '1px', marginBottom: '6px', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase' }}>Instructions</p>
                 <p style={{ fontSize: '14px', fontWeight: '300', color: '#404F43', lineHeight: '1.65', whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'Montserrat, sans-serif' }}>{selected.instructions}</p>
               </div>
             )}
 
             {selected.nutritional_profile && (
               <div style={{ marginBottom: '16px', backgroundColor: 'rgba(249,215,181,0.45)', borderRadius: '14px', padding: '12px 16px', border: '1px solid rgba(255,255,255,0.6)' }}>
-                <p style={{ fontSize: '10px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', marginBottom: '6px', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase' }}>Nutrition</p>
+                <p style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(80,45,10,0.4)', letterSpacing: '1px', marginBottom: '6px', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase' }}>Nutrition</p>
                 <p style={{ fontSize: '13px', fontWeight: '300', color: '#404F43', lineHeight: '1.6', margin: 0, fontFamily: 'Montserrat, sans-serif' }}>{selected.nutritional_profile}</p>
               </div>
             )}
 
             {selected.notes && (
               <div style={{ marginBottom: '16px' }}>
-                <p style={{ fontSize: '10px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', marginBottom: '6px', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase' }}>Notes</p>
+                <p style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(80,45,10,0.4)', letterSpacing: '1px', marginBottom: '6px', fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase' }}>Notes</p>
                 <p style={{ fontSize: '14px', fontWeight: '300', color: '#404F43', lineHeight: '1.65', whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'Montserrat, sans-serif' }}>{selected.notes}</p>
               </div>
             )}
@@ -447,7 +447,7 @@ export default function Recipes() {
                 href={selected.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ fontSize: '13px', color: '#5AA0B4', fontWeight: '400', display: 'block', marginBottom: '16px', fontFamily: 'Montserrat, sans-serif' }}
+                style={{ fontSize: '13px', color: 'rgba(80,45,10,0.7)', fontWeight: '400', display: 'block', marginBottom: '16px', fontFamily: 'Montserrat, sans-serif' }}
               >🔗 View Original Recipe</a>
             )}
 
@@ -481,7 +481,7 @@ export default function Recipes() {
         {view === 'add' && (
           <div className="glass-card" style={{ padding: '20px' }}>
 
-            <p style={{ fontSize: '10px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', marginBottom: '8px', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif' }}>Import from URL</p>
+            <p style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(80,45,10,0.4)', letterSpacing: '1px', marginBottom: '8px', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif' }}>Import from URL</p>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
               <input
                 style={{ ...inputStyle, flex: 1 }}
@@ -496,11 +496,11 @@ export default function Recipes() {
               >{fetchingUrl ? '...' : 'Import'}</button>
             </div>
 
-            <p style={{ fontSize: '10px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', marginBottom: '8px', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif' }}>Import from Photo</p>
+            <p style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(80,45,10,0.4)', letterSpacing: '1px', marginBottom: '8px', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif' }}>Import from Photo</p>
             <label style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               border: '1.5px dashed rgba(189,194,180,0.8)', borderRadius: '12px', padding: '12px 16px',
-              fontSize: '13px', fontFamily: 'Montserrat, sans-serif', color: '#5AA0B4',
+              fontSize: '13px', fontFamily: 'Montserrat, sans-serif', color: 'rgba(80,45,10,0.6)',
               fontWeight: '400', cursor: extractingFromPhoto ? 'default' : 'pointer',
               marginBottom: '8px', opacity: extractingFromPhoto ? 0.6 : 1,
               backgroundColor: 'rgba(255,255,255,0.3)',
@@ -564,7 +564,7 @@ export default function Recipes() {
 
               {/* Photo Upload */}
               <div>
-                <p style={{ fontSize: '10px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', marginBottom: '8px', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif' }}>Photo</p>
+                <p style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(80,45,10,0.4)', letterSpacing: '1px', marginBottom: '8px', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif' }}>Photo</p>
                 {form.image_url && (
                   <div style={{ position: 'relative', marginBottom: '8px' }}>
                     <img src={form.image_url} alt="Recipe" style={{ width: '100%', height: '160px', objectFit: 'cover', borderRadius: '12px' }} />

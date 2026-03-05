@@ -24,13 +24,13 @@ export default function Sidebar() {
   }, []);
 
   return (
-    <div style={{
+    <div className="sidebar-desktop" style={{
       position: 'fixed', left: 0, top: 0, bottom: 0, width: '72px',
       background: 'rgba(90,160,180,0.18)',
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
       borderRight: '1px solid rgba(255,255,255,0.35)',
-      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      flexDirection: 'column', alignItems: 'center',
       padding: '20px 0',
       zIndex: 100,
     }}>

@@ -349,7 +349,7 @@ export default function Home() {
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '20px' }}>
         <div>
           <p style={{ margin: 0, fontSize: '26px', fontWeight: '700', color: '#3D3529', letterSpacing: '-0.5px', lineHeight: 1.1 }}>Happy Belly</p>
-          <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#9AAC9D', fontWeight: '300' }}>
+          <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'rgba(80,45,10,0.5)', fontWeight: '300' }}>
             {dateLabel}{familyCount > 0 ? ` · Family of ${familyCount}` : ''}
           </p>
         </div>
@@ -385,13 +385,13 @@ export default function Home() {
 
       {/* ── Context input + Generate button (one card) ── */}
       <div className="glass-card" style={{ padding: '14px 16px', marginBottom: '20px' }}>
-        <p style={{ margin: '0 0 8px', fontSize: '10px', fontWeight: '700', color: '#5AA0B4', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif' }}>This Week's Context</p>
+        <p style={{ margin: '0 0 8px', fontSize: '10px', fontWeight: '700', color: 'rgba(80,45,10,0.4)', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif' }}>This Week's Context</p>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
           <textarea
-            placeholder="Cravings, schedule, training plans... tell me about your week"
+            placeholder="Tell me about your week"
             rows={1}
             value={weeklyContext}
-            onChange={e => setWeeklyContext(e.target.value)}
+            onChange={e => { setWeeklyContext(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
             style={{
               flex: 1,
               background: 'rgba(255,255,255,0.3)',
@@ -401,6 +401,7 @@ export default function Home() {
               outline: 'none',
               fontSize: '13px', fontWeight: '400', fontFamily: 'Montserrat, sans-serif',
               resize: 'none', color: 'rgba(80,45,10,0.8)', lineHeight: '1.5',
+              overflow: 'hidden',
             }}
           />
           <button
@@ -424,7 +425,7 @@ export default function Home() {
       {/* ── Day label + dot indicators ── */}
       {mealPlan && (
         <>
-          <p style={{ margin: '0 0 12px', fontSize: '11px', fontWeight: '700', color: '#9AAC9D', letterSpacing: '1px', textTransform: 'uppercase' }}>
+          <p style={{ margin: '0 0 12px', fontSize: '11px', fontWeight: '700', color: 'rgba(80,45,10,0.4)', letterSpacing: '1px', textTransform: 'uppercase' }}>
             {isToday ? `Today — ${selectedDay}` : selectedDay}
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '5px', marginBottom: '16px' }}>
